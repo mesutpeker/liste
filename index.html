@@ -1,0 +1,1279 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Öğrenci Listesi Çıkarıcı</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.1/font/bootstrap-icons.css">
+    <!-- PDF.js kütüphanesi -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.min.js"></script>
+    <style>
+        body {
+            padding-top: 2rem;
+            background-color: #f8f9fa;
+            background-image: linear-gradient(135deg, #f5f7fa 0%, #e4eafc 100%);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .container {
+            max-width: 900px;
+            padding: 0 15px;
+        }
+        .card {
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow: hidden;
+            border: none;
+            transition: all 0.3s ease;
+        }
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(50, 50, 93, 0.2);
+        }
+        .table {
+            margin-bottom: 0;
+            table-layout: auto;
+            width: 100%;
+        }
+        .table th {
+            font-weight: 600;
+            color: #4a4a4a;
+            border-top: none;
+            background-color: #f8f9fa;
+            padding: 0.75rem;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+        }
+        .table td {
+            position: relative;
+            vertical-align: middle;
+            padding: 0.75rem;
+            border-top: 1px solid #f1f1f1;
+            font-size: 0.95rem;
+        }
+        .table tr {
+            position: relative;
+            transition: all 0.2s ease;
+        }
+        .table tr:hover {
+            background-color: #f9fbff !important;
+            box-shadow: 0 3px 5px rgba(0, 0, 0, 0.02);
+        }
+        .table tr .row-copy {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            visibility: hidden;
+            opacity: 0;
+            transition: all 0.2s ease;
+            z-index: 10;
+        }
+        .table tr:hover .row-copy {
+            visibility: visible;
+            opacity: 1;
+        }
+        .row-copy {
+            background-color: rgba(108, 99, 255, 0.1);
+            color: #6c63ff;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            outline: none;
+            transition: all 0.2s ease;
+        }
+        .row-copy:hover, .row-copy:focus {
+            background-color: rgba(108, 99, 255, 0.2);
+            transform: scale(1.1);
+            outline: none;
+        }
+        .row-copy:focus {
+            box-shadow: 0 0 0 2px rgba(108, 99, 255, 0.4);
+        }
+        .table-striped tbody tr:nth-of-type(odd) {
+            background-color: rgba(108, 99, 255, 0.02);
+        }
+        .hidden {
+            display: none;
+        }
+        .spinner-border {
+            width: 1.5rem;
+            height: 1.5rem;
+        }
+        #upload-area {
+            border: 2px dashed #6c63ff;
+            border-radius: 15px;
+            padding: 2rem 1rem;
+            text-align: center;
+            transition: all 0.3s;
+            cursor: pointer;
+            background-color: rgba(108, 99, 255, 0.03);
+        }
+        #upload-area:hover, #upload-area.dragover {
+            border-color: #6c63ff;
+            background-color: rgba(108, 99, 255, 0.1);
+        }
+        #error-message {
+            color: #dc3545;
+            font-weight: 500;
+            padding: 10px;
+            border-radius: 8px;
+            background-color: rgba(220, 53, 69, 0.1);
+        }
+        .class-title {
+            background-color: #6c63ff;
+            padding: 15px;
+            margin-bottom: 0;
+            border-radius: 15px 15px 0 0;
+            font-weight: 600;
+            display: flex;
+            flex-direction: column;
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: 0 4px 15px rgba(108, 99, 255, 0.2);
+        }
+        .class-title .title-text {
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        .class-title .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+            justify-content: center;
+        }
+        .btn {
+            border-radius: 8px;
+            font-weight: 500;
+            padding: 0.4rem 0.6rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            white-space: nowrap;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+        }
+        .btn-numbers {
+            background-color: #FF6B6B;
+            border-color: #FF6B6B;
+            color: white;
+        }
+        .btn-numbers:hover {
+            background-color: #ff5252;
+            border-color: #ff5252;
+            color: white;
+        }
+        .btn-names {
+            background-color: #48B7D2;
+            border-color: #48B7D2;
+            color: white;
+        }
+        .btn-names:hover {
+            background-color: #3a9eb9;
+            border-color: #3a9eb9;
+            color: white;
+        }
+        .btn-surnames {
+            background-color: #4CAF50;
+            border-color: #4CAF50;
+            color: white;
+        }
+        .btn-surnames:hover {
+            background-color: #3e9142;
+            border-color: #3e9142;
+            color: white;
+        }
+        .btn-fullnames {
+            background-color: #FFA117;
+            border-color: #FFA117;
+            color: white;
+        }
+        .btn-fullnames:hover {
+            background-color: #f09000;
+            border-color: #f09000;
+            color: white;
+        }
+        .btn-all {
+            background-color: #9C27B0;
+            border-color: #9C27B0;
+            color: white;
+            font-weight: 600;
+        }
+        .btn-all:hover {
+            background-color: #8e24aa;
+            border-color: #8e24aa;
+            color: white;
+        }
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+        .debug-info {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+            padding: 10px;
+            margin-top: 15px;
+            border-radius: 5px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            display: none;
+        }
+        .even-row {
+            background-color: rgba(108, 99, 255, 0.03);
+        }
+        .bi {
+            margin-right: 5px;
+            font-size: 0.9rem;
+        }
+        h1 {
+            color: #fbf9f9;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-shadow: 0px 2px 3px rgba(0,0,0,0.1);
+        }
+        .card-body {
+            padding: 1.5rem;
+        }
+        #no-results {
+            text-align: center;
+            padding: 3rem;
+            background-color: #fff;
+        }
+        #no-results p {
+            color: #6c757d;
+            font-size: 1.1rem;
+        }
+        #results-container {
+            perspective: 1000px;
+        }
+        .header-section {
+            background: linear-gradient(45deg, #6c63ff, #5a52d6);
+            color: white;
+            padding: 2rem 0 1.5rem;
+            border-radius: 0 0 20% 20% / 30px;
+            margin-bottom: 2rem;
+            box-shadow: 0 5px 15px rgba(108, 99, 255, 0.3);
+        }
+        .header-title {
+            font-size: 2rem;
+            font-weight: 800;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 0.5rem;
+        }
+        .header-subtitle {
+            opacity: 0.9;
+            font-weight: 300;
+            margin-bottom: 0;
+            font-size: 1rem;
+        }
+        
+        /* Mobil uyumluluk ayarları */
+        @media (max-width: 767.98px) {
+            .header-section {
+                padding: 1.5rem 0 1rem;
+            }
+            .header-title {
+                font-size: 1.6rem;
+            }
+            .header-subtitle {
+                font-size: 0.9rem;
+            }
+            #upload-area {
+                padding: 1.5rem 1rem;
+            }
+            .class-title {
+                padding: 10px;
+            }
+            .class-title .button-group {
+                width: 100%;
+                justify-content: center;
+            }
+            .btn {
+                padding: 0.35rem 0.5rem;
+                font-size: 0.8rem;
+            }
+            .table-responsive {
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+            }
+            .table th, .table td {
+                padding: 0.5rem;
+                font-size: 0.85rem;
+                white-space: nowrap;
+            }
+            .card-body {
+                padding: 1rem;
+            }
+            .row-copy {
+                width: 28px;
+                height: 28px;
+                right: 5px;
+            }
+        }
+        
+        /* Küçük ekranlar için ek düzenlemeler */
+        @media (max-width: 575.98px) {
+            .header-title {
+                font-size: 1.4rem;
+            }
+            .btn {
+                padding: 0.25rem 0.4rem;
+                font-size: 0.75rem;
+                margin-bottom: 5px;
+            }
+            .bi {
+                font-size: 0.8rem;
+                margin-right: 3px;
+            }
+            .class-title .button-group {
+                gap: 3px;
+            }
+            .table th, .table td {
+                padding: 0.4rem;
+                font-size: 0.8rem;
+            }
+            .row-copy {
+                width: 24px;
+                height: 24px;
+                right: 3px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header-section">
+        <div class="container">
+            <h1 class="text-center header-title">Öğrenci Listesi Çıkarıcı</h1>
+            <p class="text-center header-subtitle">PDF dosyalarından kolayca öğrenci listelerini çıkarın</p>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="card mb-4">
+            <div class="card-body">
+                <div id="upload-area" class="mb-3">
+                    <div id="upload-text">
+                        <i class="bi bi-cloud-arrow-up fs-1 mb-3" style="color: #6c63ff;"></i>
+                        <h4 class="mb-2">PDF Dosyanızı Yükleyin</h4>
+                        <p class="mb-0 text-muted">PDF dosyasını seçmek için tıklayın veya sürükleyip bırakın</p>
+                    </div>
+                    <div id="loading" class="hidden">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Yükleniyor...</span>
+                        </div>
+                        <p class="mb-0 mt-2">PDF işleniyor, lütfen bekleyin...</p>
+                    </div>
+                </div>
+                <input type="file" id="pdf-file" accept=".pdf" class="hidden">
+                <p id="error-message" class="text-center hidden"></p>
+                <div id="debug-info" class="debug-info"></div>
+            </div>
+        </div>
+        
+        <div id="results-container">
+            <!-- Sınıf kartları buraya eklenecek -->
+        </div>
+
+        <div class="card hidden" id="no-results">
+            <div class="card-body text-center">
+                <p class="mb-0">Sınıf bilgisi bulunamadı.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // PDF.js kütüphanesinin yüklendiğini kontrol et
+        if (typeof pdfjsLib === 'undefined') {
+            console.error('PDF.js kütüphanesi yüklenemedi. Sayfa yenilenerek tekrar denenecek...');
+            alert('PDF işleme kütüphanesi yüklenemedi. Sayfa yenileniyor...');
+            // 3 saniye sonra sayfayı yenile
+            setTimeout(() => {
+                window.location.reload();
+            }, 3000);
+        } else {
+            console.log('PDF.js kütüphanesi başarıyla yüklendi!');
+        }
+
+        // PDF.js çalışma ortamını yapılandırma
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.9.179/pdf.worker.min.js';
+
+        // Ayrık harfleri birleştirme fonksiyonu
+        function mergeLetters(text) {
+            if (!text) return text;
+            
+            // Örnek: "M U H A M M E D" -> "MUHAMMED"
+            // Tek harfli kelimeleri (aralarında boşluk olan harfleri) tespit et ve birleştir
+            const words = text.split(' ');
+            
+            // Eğer çoğunlukla tek harfli kelimeler varsa, tüm harfleri birleştir
+            const singleLetterWords = words.filter(word => word.length === 1);
+            const mostlySingleLetters = singleLetterWords.length > (words.length / 2);
+            
+            if (mostlySingleLetters) {
+                return words.join('');
+            } else if (words.length >= 3) {
+                // Daha akıllı analiz - tekrarlanan desen var mı?
+                // Örnek: "A R İ F" -> "ARİF"
+                let allSingleLettersGroups = true;
+                const groups = [];
+                let currentGroup = [words[0]];
+                
+                for (let i = 1; i < words.length; i++) {
+                    const prevWord = words[i-1];
+                    const currentWord = words[i];
+                    
+                    // Tek harfli kelime dizisi kontrolü
+                    if (prevWord.length === 1 && currentWord.length === 1) {
+                        currentGroup.push(currentWord);
+                    } else if (prevWord.length === 1 && currentWord.length > 1) {
+                        // Grup bitti
+                        if (currentGroup.length > 1) {
+                            groups.push(currentGroup);
+                        }
+                        currentGroup = [currentWord];
+                        allSingleLettersGroups = false;
+                    } else {
+                        // Tek harfli değilse normal kelime
+                        if (currentGroup.length > 0) {
+                            groups.push(currentGroup);
+                        }
+                        currentGroup = [currentWord];
+                        allSingleLettersGroups = false;
+                    }
+                }
+                
+                // Son grubu da ekle
+                if (currentGroup.length > 0) {
+                    groups.push(currentGroup);
+                }
+                
+                // Eğer tüm kelimeler tek harfli gruplardan oluşuyorsa birleştir
+                if (allSingleLettersGroups && groups.length > 0 && groups[0].length > 2) {
+                    return words.join('');
+                }
+                
+                // Tek harfli grupları birleştir, diğer kelimeleri normal bırak
+                let result = '';
+                for (const group of groups) {
+                    if (group.length > 2 && group.every(word => word.length === 1)) {
+                        result += group.join('') + ' ';
+                    } else {
+                        result += group.join(' ') + ' ';
+                    }
+                }
+                
+                return result.trim();
+            }
+            
+            // Değilse, normal kelime olarak kabul et
+            return text;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const uploadArea = document.getElementById('upload-area');
+            const fileInput = document.getElementById('pdf-file');
+            const loadingElem = document.getElementById('loading');
+            const uploadTextElem = document.getElementById('upload-text');
+            const resultsContainer = document.getElementById('results-container');
+            const noResults = document.getElementById('no-results');
+            const errorMessage = document.getElementById('error-message');
+            const debugInfo = document.getElementById('debug-info');
+            
+            let classesByName = {};
+            
+            // Geliştirme modunda hata ayıklama bilgilerini göster (URL'de ?debug=true parametresi varsa)
+            const urlParams = new URLSearchParams(window.location.search);
+            const debugMode = urlParams.get('debug') === 'true';
+            
+            if (debugMode) {
+                debugInfo.style.display = 'block';
+                debugLog('Debug modu aktif');
+            }
+            
+            function debugLog(message, data) {
+                console.log(message, data);
+                if (debugMode) {
+                    let formattedMessage = message;
+                    if (data) {
+                        if (typeof data === 'object') {
+                            formattedMessage += '\n' + JSON.stringify(data, null, 2);
+                        } else {
+                            formattedMessage += ' ' + data;
+                        }
+                    }
+                    debugInfo.textContent += formattedMessage + '\n';
+                    // Otomatik kaydırma
+                    debugInfo.scrollTop = debugInfo.scrollHeight;
+                }
+            }
+
+            // Upload alanına tıklandığında dosya seçimi yapma
+            uploadArea.addEventListener('click', () => {
+                debugLog('Upload alanına tıklandı');
+                fileInput.click();
+            });
+
+            // Sürükle-bırak olayları
+            ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, preventDefaults, false);
+            });
+
+            function preventDefaults(e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+
+            ['dragenter', 'dragover'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.add('dragover');
+                }, false);
+            });
+
+            ['dragleave', 'drop'].forEach(eventName => {
+                uploadArea.addEventListener(eventName, () => {
+                    uploadArea.classList.remove('dragover');
+                }, false);
+            });
+
+            // Dosya sürüklenip bırakıldığında
+            uploadArea.addEventListener('drop', (e) => {
+                const dt = e.dataTransfer;
+                const file = dt.files[0];
+                
+                debugLog('Dosya bırakıldı:', file ? file.name : 'Dosya yok');
+                
+                if (file && file.type === 'application/pdf') {
+                    fileInput.files = dt.files;
+                    processFile(file);
+                } else {
+                    showError('Lütfen PDF dosyası yükleyin.');
+                }
+            });
+
+            // Dosya seçildiğinde
+            fileInput.addEventListener('change', () => {
+                debugLog('Dosya seçme olayı tetiklendi');
+                
+                if (fileInput.files.length > 0) {
+                    const file = fileInput.files[0];
+                    debugLog('Seçilen dosya:', file.name);
+                    
+                    if (file.type === 'application/pdf') {
+                        processFile(file);
+                    } else {
+                        showError('Lütfen PDF dosyası yükleyin.');
+                    }
+                } else {
+                    debugLog('Dosya seçilmedi');
+                }
+            });
+
+            // PDF dosyasını işleme
+            async function processFile(file) {
+                resetUI();
+                showLoading(true);
+                
+                debugLog('PDF işleme başlatıldı:', file.name);
+                
+                try {
+                    const fileReader = new FileReader();
+                    
+                    fileReader.onload = async function() {
+                        debugLog('Dosya okuma tamamlandı, PDF işleniyor...');
+                        const typedArray = new Uint8Array(this.result);
+                        
+                        try {
+                            debugLog('PDF.js ile dosya yükleniyor...');
+                            const pdf = await pdfjsLib.getDocument({data: typedArray}).promise;
+                            debugLog(`PDF yüklendi, toplam sayfa sayısı: ${pdf.numPages}`);
+                            
+                            debugLog('Sınıf bilgileri çıkarılıyor...');
+                            const classes = await extractClassInfo(pdf);
+                            
+                            classesByName = classes;
+                            
+                            const classCount = Object.keys(classes).length;
+                            debugLog(`Toplam ${classCount} sınıf bulundu`);
+                            
+                            if (classCount === 0) {
+                                debugLog('Hiç sınıf bulunamadı');
+                                noResults.classList.remove('hidden');
+                                showLoading(false);
+                                return;
+                            }
+                            
+                            // Veri önişleme - Eğer adın içinde numara varsa ayır
+                            Object.keys(classes).forEach(className => {
+                                classes[className].forEach(student => {
+                                    // Eğer adın içinde numara varsa ayır
+                                    if (student.first_name.match(/^\d+\s+/)) {
+                                        const parts = student.first_name.trim().split(/\s+/);
+                                        // İlk kelime numaraysa
+                                        if (parts.length > 1 && /^\d+$/.test(parts[0])) {
+                                            student.student_no = parts[0];
+                                            // Geri kalan kısmı ad olarak al
+                                            student.first_name = parts.slice(1).join(' ');
+                                        }
+                                    }
+                                });
+                            });
+                            
+                            debugLog('Sınıflar ve öğrenciler görüntüleniyor...');
+                            displayClassesAndStudents(classes);
+                            showLoading(false);
+                        } catch (err) {
+                            console.error('PDF işleme hatası:', err);
+                            debugLog('PDF işleme hatası: ' + err.message);
+                            showError('PDF dosyası işlenirken bir hata oluştu: ' + err.message);
+                            showLoading(false);
+                        }
+                    };
+                    
+                    fileReader.onerror = function(err) {
+                        debugLog('Dosya okuma hatası: ' + err);
+                        showError('Dosya okunamadı.');
+                        showLoading(false);
+                    };
+                    
+                    debugLog('Dosya okumaya başlanıyor...');
+                    fileReader.readAsArrayBuffer(file);
+                } catch (err) {
+                    console.error('Dosya okuma hatası:', err);
+                    debugLog('Dosya işleme hatası: ' + err.message);
+                    showError('Dosya işlenirken hata oluştu: ' + err.message);
+                    showLoading(false);
+                }
+            }
+            
+            // PDF'den sınıf ve öğrenci bilgilerini çıkarma
+            async function extractClassInfo(pdf) {
+                const classes = {};
+                const numPages = pdf.numPages;
+                
+                try {
+                    for (let pageNum = 1; pageNum <= numPages; pageNum++) {
+                        debugLog(`Sayfa ${pageNum}/${numPages} işleniyor...`);
+                        const page = await pdf.getPage(pageNum);
+                        const textContent = await page.getTextContent();
+                        debugLog(`Sayfa ${pageNum} - metin öğe sayısı: ${textContent.items.length}`);
+                        
+                        // 1. Tüm metin içeriğini birleştirme
+                        let fullText = '';
+                        let prevItem = null;
+                        let lineTexts = [];
+                        let currentLine = [];
+                        
+                        // İlk adımda satırları oluştur
+                        for (const item of textContent.items) {
+                            if (prevItem && Math.abs(prevItem.transform[5] - item.transform[5]) < 2) {
+                                // Aynı satırda, önceki öğeye ekle
+                                currentLine.push(item);
+                            } else {
+                                // Yeni satır başlat
+                                if (currentLine.length > 0) {
+                                    lineTexts.push(currentLine);
+                                }
+                                currentLine = [item];
+                            }
+                            prevItem = item;
+                        }
+                        
+                        // Son satırı ekle
+                        if (currentLine.length > 0) {
+                            lineTexts.push(currentLine);
+                        }
+                        
+                        // Her satırı işle ve metne dönüştür
+                        let lines = [];
+                        for (const line of lineTexts) {
+                            // Satırdaki öğeleri x pozisyonuna göre sırala
+                            line.sort((a, b) => a.transform[4] - b.transform[4]);
+                            
+                            let lineText = '';
+                            let prevLineItem = null;
+                            
+                            for (const item of line) {
+                                if (prevLineItem) {
+                                    // Öğeler arasındaki mesafeyi kontrol et
+                                    const gap = item.transform[4] - (prevLineItem.transform[4] + prevLineItem.width);
+                                    
+                                    // Yakın karakterleri birleştir (küçük aralıkları yok say)
+                                    if (gap < 2) {
+                                        lineText += item.str;
+                                    } else if (gap < 20) {
+                                        // Normal kelime aralığı
+                                        lineText += ' ' + item.str;
+                                    } else {
+                                        // Büyük boşluk, muhtemelen sütun aralığı
+                                        lineText += '\t' + item.str;
+                                    }
+                                } else {
+                                    lineText += item.str;
+                                }
+                                prevLineItem = item;
+                            }
+                            
+                            lines.push(lineText);
+                            fullText += lineText + '\n';
+                        }
+                        
+                        // Geliştirme modunda metin içeriğini gösterme
+                        if (debugMode) {
+                            debugLog(`Sayfa ${pageNum} metin içeriği (ilk 500 karakter):`, fullText.substring(0, 500) + '...');
+                        }
+                        
+                        // 2. Sınıf adını bulma
+                        const classNamePattern = /(\d+\.\s*Sınıf\s*\/\s*[A-Z]\s*Şubesi.*?)(?:\n|$)/i;
+                        const classMatch = fullText.match(classNamePattern);
+                        let currentClass = null;
+                        
+                        if (classMatch) {
+                            currentClass = classMatch[1].trim();
+                            debugLog(`Sınıf bulundu: ${currentClass}`);
+                            classes[currentClass] = [];
+                        } else {
+                            debugLog(`Sayfa ${pageNum}'de sınıf bilgisi bulunamadı`);
+                        }
+                        
+                        // 3. Öğrenci bilgilerini bulma ve sınıflandırma
+                        // Öğrenci bilgilerini hem tam metin hem de satır bazında ara
+                        if (currentClass) {
+                            // A) Satır bazlı arama (öncelikli)
+                            let studentsFound = false;
+                            
+                            for (const line of lines) {
+                                // Tab karakterleri ile ayrılmış alanları içeren satırlar muhtemelen öğrenci satırlarıdır
+                                if (line.includes('\t')) {
+                                    const columns = line.split('\t').map(col => col.trim());
+                                    
+                                    // En az 3 sütun var mı kontrol et (numara, isim, soyisim için)
+                                    if (columns.length >= 3) {
+                                        // İlk sütun numara mı kontrol et
+                                        const numberMatch = columns[0].match(/^\s*(\d+)\s*$/);
+                                        if (numberMatch) {
+                                            const studentNo = numberMatch[1];
+                                            
+                                            // Cinsiyet bilgisini bul (genellikle ayrı bir sütunda)
+                                            let genderIndex = -1;
+                                            for (let i = 1; i < columns.length; i++) {
+                                                if (/^(Erkek|Kız|erkek|kız)$/i.test(columns[i])) {
+                                                    genderIndex = i;
+                                                    break;
+                                                }
+                                            }
+                                            
+                                            if (genderIndex > 0) {
+                                                // Ad ve soyad için uygun indeksleri belirle
+                                                let firstName = columns[1].replace(/\s+/g, ' ').trim();
+                                                let lastName = columns[genderIndex + 1] ? columns[genderIndex + 1].replace(/\s+/g, ' ').trim() : '';
+                                                
+                                                // Soyadı yoksa, ad ve soyadı aynı sütunda olabilir
+                                                if (!lastName && firstName.includes(' ')) {
+                                                    const nameParts = firstName.split(' ');
+                                                    lastName = nameParts.pop();
+                                                    firstName = nameParts.join(' ');
+                                                }
+                                                
+                                                if (firstName && lastName) {
+                                                    // Harfleri düzeltme
+                                                    firstName = mergeLetters(firstName);
+                                                    lastName = mergeLetters(lastName);
+                                                    
+                                                    classes[currentClass].push({
+                                                        student_no: studentNo,
+                                                        first_name: firstName, 
+                                                        last_name: lastName
+                                                    });
+                                                    
+                                                    studentsFound = true;
+                                                    
+                                                    if (debugMode && classes[currentClass].length <= 3) {
+                                                        debugLog(`Öğrenci bulundu (satır): ${studentNo} ${firstName} ${lastName}`);
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            // Eğer satır bazlı arama öğrenci bulamadıysa, regex ile dene
+                            if (!studentsFound) {
+                                debugLog(`Satır bazlı arama öğrenci bulamadı, regex ile deneniyor...`);
+                                
+                                // B) Regex ile arama (yedek yöntem)
+                                const studentPattern = /\b(\d+)\s+([A-ZĞÜŞİÖÇÂÎÛa-zğüşıöçâîû\s]+?)\s+(Erkek|Kız|erkek|kız)\s+([A-ZĞÜŞİÖÇÂÎÛa-zğüşıöçâîû\s]+?)\s*(?:\n|$)/g;
+                                
+                                let match;
+                                while ((match = studentPattern.exec(fullText)) !== null) {
+                                    let firstName = match[2].trim().replace(/\s+/g, ' ');
+                                    let lastName = match[4].trim().replace(/\s+/g, ' ');
+                                    
+                                    // Harfleri düzeltme
+                                    firstName = mergeLetters(firstName);
+                                    lastName = mergeLetters(lastName);
+                                    
+                                    classes[currentClass].push({
+                                        student_no: match[1].trim(),
+                                        first_name: firstName,
+                                        last_name: lastName
+                                    });
+                                    
+                                    if (debugMode && classes[currentClass].length <= 3) {
+                                        debugLog(`Öğrenci bulundu (regex): ${match[1].trim()} ${firstName} ${lastName}`);
+                                    }
+                                }
+                            }
+                            
+                            // C) Son çare olarak, daha esnek bir desen dene
+                            if (classes[currentClass].length === 0) {
+                                debugLog(`Standart desenlerle öğrenci bulunamadı, daha esnek desen deneniyor...`);
+                                
+                                for (const line of lines) {
+                                    // Başında sayı olan her satırı kontrol et
+                                    const loosePattern = /^\s*(\d+)\s+(.*)/;
+                                    const match = line.match(loosePattern);
+                                    
+                                    if (match) {
+                                        const studentNo = match[1].trim();
+                                        const restOfLine = match[2].trim();
+                                        
+                                        // Satırın geri kalanını boşluklara göre parçala
+                                        const parts = restOfLine.split(/\s+/);
+                                        
+                                        if (parts.length >= 2) {
+                                            // Son kelime soyad olarak kabul et
+                                            const lastName = parts.pop();
+                                            // Geri kalan kısım ad olarak kabul et
+                                            const firstName = parts.join(' ');
+                                            
+                                            if (firstName && lastName) {
+                                                // Harfleri düzeltme
+                                                let correctedFirstName = mergeLetters(firstName);
+                                                let correctedLastName = mergeLetters(lastName);
+                                                
+                                                classes[currentClass].push({
+                                                    student_no: studentNo,
+                                                    first_name: correctedFirstName,
+                                                    last_name: correctedLastName
+                                                });
+                                                
+                                                if (debugMode && classes[currentClass].length <= 3) {
+                                                    debugLog(`Öğrenci bulundu (esnek desen): ${studentNo} ${correctedFirstName} ${correctedLastName}`);
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                            
+                            debugLog(`${currentClass} sınıfında ${classes[currentClass].length} öğrenci bulundu`);
+                        }
+                    }
+                    
+                    return classes;
+                } catch (err) {
+                    debugLog(`PDF işleme hatası: ${err.message}`);
+                    throw err;
+                }
+            }
+
+            // Sınıfları ve öğrencileri görüntüleme
+            function displayClassesAndStudents(classes) {
+                resultsContainer.innerHTML = '';
+                
+                // Veri önişleme - Öğrenci numarası ve ad kontrolü
+                Object.keys(classes).forEach(className => {
+                    classes[className].forEach(student => {
+                        // Eğer adın içinde numara varsa ayır
+                        if (student.first_name && student.first_name.match(/^\d+\s+/)) {
+                            const parts = student.first_name.trim().split(/\s+/);
+                            // İlk kelime numaraysa
+                            if (parts.length > 1 && /^\d+$/.test(parts[0])) {
+                                student.student_no = parts[0];
+                                // Geri kalan kısmı ad olarak al
+                                student.first_name = parts.slice(1).join(' ');
+                                debugLog(`Öğrenci verisi düzeltildi: ${student.student_no} - ${student.first_name}`);
+                            }
+                        }
+                    });
+                });
+                
+                Object.entries(classes).forEach(([className, students]) => {
+                    if (students.length === 0) return;
+                    
+                    debugLog(`'${className}' sınıfı görüntüleniyor, ${students.length} öğrenci var`);
+                    
+                    // Her sınıf için bir kart oluştur
+                    const classCard = document.createElement('div');
+                    classCard.className = 'card';
+                    
+                    // Kart başlığı - sınıf adı ve kopyalama butonları
+                    const classTitle = document.createElement('div');
+                    classTitle.className = 'class-title';
+                    classTitle.innerHTML = `
+                        <div class="title-text">${className}</div>
+                        <div class="button-group">
+                            <button class="btn btn-numbers copy-numbers-btn" data-class="${className}">
+                                <i class="bi bi-clipboard"></i> Numaralar
+                            </button>
+                            <button class="btn btn-names copy-names-btn" data-class="${className}">
+                                <i class="bi bi-clipboard"></i> Adlar
+                            </button>
+                            <button class="btn btn-surnames copy-surnames-btn" data-class="${className}">
+                                <i class="bi bi-clipboard"></i> Soyadlar
+                            </button>
+                            <button class="btn btn-fullnames copy-fullnames-btn" data-class="${className}">
+                                <i class="bi bi-clipboard"></i> Ad-Soyadlar
+                            </button>
+                            <button class="btn btn-all copy-class-btn" data-class="${className}">
+                                <i class="bi bi-clipboard"></i> Tümünü Kopyala
+                            </button>
+                        </div>
+                    `;
+                    
+                    // Öğrenci tablosu
+                    const tableDiv = document.createElement('div');
+                    tableDiv.className = 'table-responsive';
+                    tableDiv.innerHTML = `
+                        <table class="table table-striped mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Öğrenci No</th>
+                                    <th>Adı</th>
+                                    <th>Soyadı</th>
+                                </tr>
+                            </thead>
+                            <tbody id="student-list-${className.replace(/[^a-z0-9]/gi, '')}"></tbody>
+                        </table>
+                    `;
+                    
+                    classCard.appendChild(classTitle);
+                    classCard.appendChild(tableDiv);
+                    resultsContainer.appendChild(classCard);
+                    
+                    // Öğrenci listesini doldur
+                    const studentList = document.getElementById(`student-list-${className.replace(/[^a-z0-9]/gi, '')}`);
+                    
+                    students.forEach((student, index) => {
+                        const row = document.createElement('tr');
+                        // Alternatif satır renklendirme
+                        if (index % 2 === 0) {
+                            row.classList.add('even-row');
+                        }
+                        
+                        row.innerHTML = `
+                            <td>${student.student_no}</td>
+                            <td>${student.first_name}</td>
+                            <td>${student.last_name}</td>
+                            <button class="row-copy" data-student="${student.student_no} ${student.first_name} ${student.last_name}" title="Bilgileri kopyala">
+                                <i class="bi bi-clipboard"></i>
+                            </button>
+                        `;
+                        
+                        studentList.appendChild(row);
+                    });
+                });
+                
+                // Sınıf kopyalama butonları için olay dinleyicileri
+                document.querySelectorAll('.copy-class-btn').forEach(button => {
+                    button.addEventListener('click', copyClassInfo);
+                });
+                
+                // Numaraları kopyalama butonları için olay dinleyicileri
+                document.querySelectorAll('.copy-numbers-btn').forEach(button => {
+                    button.addEventListener('click', copyNumbersInfo);
+                });
+                
+                // Adları kopyalama butonları için olay dinleyicileri
+                document.querySelectorAll('.copy-names-btn').forEach(button => {
+                    button.addEventListener('click', copyNamesInfo);
+                });
+                
+                // Soyadları kopyalama butonları için olay dinleyicileri
+                document.querySelectorAll('.copy-surnames-btn').forEach(button => {
+                    button.addEventListener('click', copySurnamesInfo);
+                });
+                
+                // Ad-Soyadları kopyalama butonları için olay dinleyicileri
+                document.querySelectorAll('.copy-fullnames-btn').forEach(button => {
+                    button.addEventListener('click', copyFullNamesInfo);
+                });
+                
+                // Satır kopyalama butonları için olay dinleyicileri
+                document.querySelectorAll('.row-copy').forEach(button => {
+                    button.addEventListener('click', copyRowInfo);
+                });
+                
+                debugLog('Tüm sınıflar ve öğrenciler başarıyla görüntülendi');
+            }
+
+            // Tek bir öğrenci bilgisini kopyalama
+            function copyStudentInfo(e) {
+                const button = e.currentTarget;
+                const field = button.getAttribute('data-field');
+                const index = button.getAttribute('data-index');
+                const className = button.getAttribute('data-class');
+                const student = classesByName[className][index];
+                
+                let textToCopy = '';
+                
+                if (field === 'all') {
+                    textToCopy = `${student.student_no} ${student.first_name} ${student.last_name}`;
+                } else {
+                    textToCopy = student[field];
+                }
+                
+                debugLog(`Kopyalanan ${field}: ${textToCopy}`);
+                
+                navigator.clipboard.writeText(textToCopy).then(() => {
+                    // Kopyalama başarılı olduğunda butonun stilini değiştirme
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="bi bi-check"></i> Kopyalandı';
+                    button.classList.remove('btn-outline-secondary');
+                    button.classList.add('btn-success');
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.classList.remove('btn-success');
+                        button.classList.add('btn-outline-secondary');
+                    }, 1500);
+                }).catch(err => {
+                    debugLog('Kopyalama hatası:', err);
+                    alert('Kopyalama işlemi başarısız oldu. Tarayıcı izinlerinizi kontrol edin.');
+                });
+            }
+
+            // Numaraları kopyalama butonları için olay dinleyicileri
+            function copyNumbersInfo(e) {
+                const button = e.currentTarget;
+                const className = button.getAttribute('data-class');
+                const students = classesByName[className];
+                
+                let allNumbers = '';
+                
+                students.forEach(student => {
+                    allNumbers += student.student_no + '\n';
+                });
+                
+                debugLog(`'${className}' sınıfının tüm öğrencilerinin numaraları kopyalandı`);
+                
+                navigator.clipboard.writeText(allNumbers.trim()).then(() => {
+                    showCopySuccess(button, 'Tüm Numaralar');
+                }).catch(err => {
+                    debugLog('Kopyalama hatası:', err);
+                    alert('Kopyalama işlemi başarısız oldu. Tarayıcı izinlerinizi kontrol edin.');
+                });
+            }
+
+            // Adları kopyalama butonları için olay dinleyicileri
+            function copyNamesInfo(e) {
+                const button = e.currentTarget;
+                const className = button.getAttribute('data-class');
+                const students = classesByName[className];
+                
+                let allNames = '';
+                
+                students.forEach(student => {
+                    allNames += student.first_name + '\n';
+                });
+                
+                debugLog(`'${className}' sınıfının tüm öğrencilerinin adları kopyalandı`);
+                
+                navigator.clipboard.writeText(allNames.trim()).then(() => {
+                    showCopySuccess(button, 'Tüm Adlar');
+                }).catch(err => {
+                    debugLog('Kopyalama hatası:', err);
+                    alert('Kopyalama işlemi başarısız oldu. Tarayıcı izinlerinizi kontrol edin.');
+                });
+            }
+
+            // Soyadları kopyalama butonları için olay dinleyicileri
+            function copySurnamesInfo(e) {
+                const button = e.currentTarget;
+                const className = button.getAttribute('data-class');
+                const students = classesByName[className];
+                
+                let allSurnames = '';
+                
+                students.forEach(student => {
+                    allSurnames += student.last_name + '\n';
+                });
+                
+                debugLog(`'${className}' sınıfının tüm öğrencilerinin soyadları kopyalandı`);
+                
+                navigator.clipboard.writeText(allSurnames.trim()).then(() => {
+                    showCopySuccess(button, 'Tüm Soyadlar');
+                }).catch(err => {
+                    debugLog('Kopyalama hatası:', err);
+                    alert('Kopyalama işlemi başarısız oldu. Tarayıcı izinlerinizi kontrol edin.');
+                });
+            }
+
+            // Ad-Soyadları kopyalama butonları için olay dinleyicileri
+            function copyFullNamesInfo(e) {
+                const button = e.currentTarget;
+                const className = button.getAttribute('data-class');
+                const students = classesByName[className];
+                
+                let allFullNames = '';
+                
+                students.forEach(student => {
+                    allFullNames += `${student.first_name} ${student.last_name}\n`;
+                });
+                
+                debugLog(`'${className}' sınıfının tüm öğrencilerinin ad-soyadları kopyalandı`);
+                
+                navigator.clipboard.writeText(allFullNames.trim()).then(() => {
+                    showCopySuccess(button, 'Tüm Ad-Soyadlar');
+                }).catch(err => {
+                    debugLog('Kopyalama hatası:', err);
+                    alert('Kopyalama işlemi başarısız oldu. Tarayıcı izinlerinizi kontrol edin.');
+                });
+            }
+
+            // Bir sınıfın tüm öğrenci bilgilerini kopyalama
+            function copyClassInfo(e) {
+                const button = e.currentTarget;
+                const className = button.getAttribute('data-class');
+                const students = classesByName[className];
+                
+                let allText = '';
+                
+                students.forEach(student => {
+                    allText += `${student.student_no} ${student.first_name} ${student.last_name}\n`;
+                });
+                
+                debugLog(`'${className}' sınıfının tüm öğrencileri kopyalandı`);
+                
+                navigator.clipboard.writeText(allText.trim()).then(() => {
+                    showCopySuccess(button, 'Tümünü Kopyala');
+                }).catch(err => {
+                    debugLog('Kopyalama hatası:', err);
+                    alert('Kopyalama işlemi başarısız oldu. Tarayıcı izinlerinizi kontrol edin.');
+                });
+            }
+            
+            // Kopyalama başarılı olduğunda buton stilini değiştirme
+            function showCopySuccess(button, originalText) {
+                const originalInnerHTML = button.innerHTML;
+                const originalClasses = [...button.classList];
+                
+                // Başarılı metin göster
+                button.innerHTML = '<i class="bi bi-check"></i> Kopyalandı';
+                
+                // Butonun orijinal renk sınıfını belirle
+                let buttonColorClass = '';
+                if (originalClasses.includes('btn-numbers')) buttonColorClass = 'btn-numbers';
+                else if (originalClasses.includes('btn-names')) buttonColorClass = 'btn-names';
+                else if (originalClasses.includes('btn-surnames')) buttonColorClass = 'btn-surnames';
+                else if (originalClasses.includes('btn-fullnames')) buttonColorClass = 'btn-fullnames';
+                else if (originalClasses.includes('btn-all')) buttonColorClass = 'btn-all';
+                
+                // Orijinal renk sınıfını kaldır ve başarı rengini ekle
+                if (buttonColorClass) button.classList.remove(buttonColorClass);
+                button.classList.add('btn-success');
+                
+                setTimeout(() => {
+                    // Orijinal içeriği ve renk sınıfını geri yükle
+                    button.innerHTML = originalInnerHTML;
+                    button.classList.remove('btn-success');
+                    if (buttonColorClass) button.classList.add(buttonColorClass);
+                }, 1500);
+            }
+
+            // Tek bir öğrenci satırının bilgisini kopyalama
+            function copyRowInfo(e) {
+                const button = e.currentTarget;
+                const studentInfo = button.getAttribute('data-student');
+                
+                debugLog(`Kopyalanan öğrenci: ${studentInfo}`);
+                
+                navigator.clipboard.writeText(studentInfo).then(() => {
+                    // Kopyalama başarılı olduğunda butonun stilini değiştirme
+                    const originalHTML = button.innerHTML;
+                    button.innerHTML = '<i class="bi bi-check"></i>';
+                    button.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
+                    button.style.color = '#28a745';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalHTML;
+                        button.style.backgroundColor = '';
+                        button.style.color = '';
+                    }, 1500);
+                }).catch(err => {
+                    debugLog('Kopyalama hatası:', err);
+                    alert('Kopyalama işlemi başarısız oldu. Tarayıcı izinlerinizi kontrol edin.');
+                });
+            }
+
+            // UI yardımcı fonksiyonları
+            function showLoading(isLoading) {
+                if (isLoading) {
+                    loadingElem.classList.remove('hidden');
+                    uploadTextElem.classList.add('hidden');
+                } else {
+                    loadingElem.classList.add('hidden');
+                    uploadTextElem.classList.remove('hidden');
+                }
+            }
+            
+            function showError(message) {
+                errorMessage.textContent = message;
+                errorMessage.classList.remove('hidden');
+                debugLog('Hata mesajı gösteriliyor:', message);
+                
+                setTimeout(() => {
+                    errorMessage.classList.add('hidden');
+                }, 5000);
+            }
+            
+            function resetUI() {
+                errorMessage.classList.add('hidden');
+                resultsContainer.innerHTML = '';
+                noResults.classList.add('hidden');
+            }
+            
+            // CSV dosyası oluşturma ve indirme yardımcı fonksiyonu
+            window.downloadClassCSV = function(className) {
+                const students = classesByName[className];
+                let csvContent = 'Öğrenci No,Adı,Soyadı\n';
+                
+                students.forEach(student => {
+                    csvContent += `${student.student_no},${student.first_name},${student.last_name}\n`;
+                });
+                
+                const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                
+                link.setAttribute('href', url);
+                link.setAttribute('download', `${className.replace(/[^a-z0-9]/gi, '_')}_ogrenci_listesi.csv`);
+                link.style.visibility = 'hidden';
+                
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                debugLog(`'${className}' sınıfı için CSV indirildi`);
+            };
+            
+            // Sayfanın yüklenmesinin tamamlandığını logla
+            debugLog('Sayfa tamamen yüklendi, uygulama kullanıma hazır');
+        });
+    </script>
+</body>
+</html> 
