@@ -1,0 +1,354 @@
+@media print {
+    /* Temel sayfayı temizle */
+    @page {
+        size: landscape;
+        margin: 0.2cm;
+    }
+    
+    /* Tüm içeriği gizle, sadece yazdırma alanını göster */
+    html, body {
+        margin: 0 !important;
+        padding: 0 !important;
+        height: 100% !important;
+        width: 100% !important;
+        background: none !important;
+        overflow: visible !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+    }
+    
+    body * {
+        visibility: hidden !important;
+        display: none !important;
+    }
+    
+    /* Sadece yazdırma alanını göster */
+    #homeworkSchedulePrint,
+    #homeworkSchedulePrint * {
+        visibility: visible !important;
+        display: block !important;
+        overflow: visible !important;
+        box-sizing: border-box !important;
+    }
+    
+    #homeworkSchedulePrint {
+        position: fixed !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: 100% !important;
+        max-height: 100% !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+        background-color: white !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        z-index: 9999 !important;
+    }
+    
+    #homeworkSchedulePrint table {
+        display: table !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        border-collapse: collapse !important;
+        border-spacing: 0 !important;
+        empty-cells: show !important;
+        font-size: 8px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+        page-break-inside: avoid !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+    }
+    
+    #homeworkSchedulePrint thead {
+        display: table-header-group !important;
+    }
+    
+    #homeworkSchedulePrint tbody {
+        display: table-row-group !important;
+    }
+    
+    #homeworkSchedulePrint tr {
+        display: table-row !important;
+        width: 100% !important;
+        page-break-inside: avoid !important;
+        height: 25px !important;
+        min-height: 25px !important;
+    }
+    
+    #homeworkSchedulePrint th,
+    #homeworkSchedulePrint td {
+        display: table-cell !important;
+        box-sizing: border-box !important;
+        border: 1px solid #000 !important;
+        empty-cells: show !important;
+        overflow: visible !important;
+        height: auto !important;
+    }
+    
+    #homeworkSchedulePrint th:first-child,
+    #homeworkSchedulePrint td:first-child {
+        width: 25% !important;
+        min-width: 25% !important;
+        max-width: 25% !important;
+        text-align: left !important;
+        padding-left: 5px !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        font-size: 9px !important;
+        line-height: 1.2 !important;
+        height: 25px !important;
+        border-left: 1px solid #000 !important;
+        border-right: 1px solid #000 !important;
+        border-bottom: 1px solid #000 !important;
+        font-weight: bold !important;
+    }
+    
+    #homeworkSchedulePrint th:not(:first-child),
+    #homeworkSchedulePrint td:not(:first-child) {
+        text-align: center !important;
+        vertical-align: middle !important;
+        padding: 2px 1px !important;
+        height: 25px !important;
+        border-left: 1px solid #000 !important;
+        border-right: 1px solid #000 !important;
+    }
+    
+    #homeworkSchedulePrint th:last-child {
+        border-right: 1px solid #000 !important;
+    }
+    
+    #homeworkSchedulePrint td:last-child {
+        border-right: 1px solid #000 !important;
+    }
+    
+    #homeworkSchedulePrint th div[style*="writing-mode"] {
+        min-height: 45px !important;
+        height: 70px !important;
+        width: auto !important;
+        margin: 0 auto !important;
+        font-size: 7px !important;
+        line-height: 1 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        transform: rotate(180deg) !important;
+        writing-mode: vertical-rl !important;
+        font-weight: bold !important;
+    }
+    
+    /* Sütun sayısına göre dinamik genişlikler */
+    #homeworkSchedulePrint.cols-1-5 th:not(:first-child),
+    #homeworkSchedulePrint.cols-1-5 td:not(:first-child) {
+        width: 15% !important;
+        min-width: 15% !important;
+        max-width: 15% !important;
+    }
+    
+    #homeworkSchedulePrint.cols-6-10 th:not(:first-child),
+    #homeworkSchedulePrint.cols-6-10 td:not(:first-child) {
+        width: 7.5% !important;
+        min-width: 7.5% !important;
+        max-width: 7.5% !important;
+    }
+    
+    #homeworkSchedulePrint.cols-11-15 th:not(:first-child),
+    #homeworkSchedulePrint.cols-11-15 td:not(:first-child) {
+        width: 5% !important;
+        min-width: 5% !important;
+        max-width: 5% !important;
+    }
+    
+    #homeworkSchedulePrint.cols-16-20 th:not(:first-child),
+    #homeworkSchedulePrint.cols-16-20 td:not(:first-child) {
+        width: 3.75% !important;
+        min-width: 3.75% !important;
+        max-width: 3.75% !important;
+    }
+    
+    /* Öğrenci sayısına göre font boyutları */
+    #homeworkSchedulePrint.rows-1-15 td {
+        font-size: 9px !important;
+    }
+    
+    #homeworkSchedulePrint.rows-16-30 td {
+        font-size: 8px !important;
+    }
+    
+    #homeworkSchedulePrint.rows-31-plus td {
+        font-size: 7px !important;
+    }
+    
+    /* Başlık stili */
+    #homeworkSchedulePrint h3 {
+        font-size: 12px !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        margin: 0 0 0.3cm 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+    
+    /* Tablo başlıkları ve çizgileri */
+    #homeworkSchedulePrint th {
+        border-top: 1px solid #000 !important;
+        border-bottom: 1px solid #000 !important;
+        border-left: 1px solid #000 !important;
+        border-right: 1px solid #000 !important;
+        font-weight: bold !important;
+    }
+    
+    #homeworkSchedulePrint td {
+        border: 1px solid #000 !important;
+    }
+    
+    /* İlk sütun (öğrenci adları) için özel stil */
+    #homeworkSchedulePrint td:first-child {
+        border-left: 1px solid #000 !important;
+        border-right: 1px solid #000 !important;
+        border-bottom: 1px solid #000 !important;
+        font-weight: bold !important;
+    }
+    
+    /* Tablo dış çerçevesi */
+    #homeworkSchedulePrint table {
+        border: 1px solid #000 !important;
+        box-shadow: none !important;
+    }
+    
+    /* Diğer hücreler için ince çizgi */
+    #homeworkSchedulePrint td:not(:first-child):not(:last-child) {
+        border: 1px solid #000 !important;
+    }
+    
+    /* Son satırın alt çizgisini kalınlaştır */
+    #homeworkSchedulePrint tr:last-child td {
+        border-bottom: 1px solid #000 !important;
+    }
+    
+    /* Boş hücreleri göster */
+    #homeworkSchedulePrint td:empty::after {
+        content: "\00a0" !important;
+        display: inline-block !important;
+    }
+    
+    /* Tablo ve içerik stillerini yönet */
+    #homeworkSchedulePrint table {
+        border-collapse: collapse !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        table-layout: fixed !important;
+        font-size: 8px !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        border: 1px solid #000 !important;
+        page-break-after: avoid !important;
+        page-break-before: avoid !important;
+    }
+    
+    #homeworkSchedulePrint table,
+    #homeworkSchedulePrint th,
+    #homeworkSchedulePrint td {
+        border: 1px solid #000 !important;
+        padding: 1px !important;
+        box-sizing: border-box !important;
+    }
+    
+    #homeworkSchedulePrint th, 
+    #homeworkSchedulePrint td {
+        height: auto !important;
+        overflow: visible !important;
+    }
+    
+    /* Diğer sütunlar - hafta sütunları eşit genişlikte */
+    #homeworkSchedulePrint th:not(:first-child), 
+    #homeworkSchedulePrint td:not(:first-child) {
+        text-align: center !important;
+        vertical-align: middle !important;
+    }
+    
+    /* Sondaki boş alanları gizle */
+    #homeworkSchedulePrint table {
+        table-layout: fixed !important;
+        width: 100% !important;
+        border-spacing: 0 !important;
+        empty-cells: show !important;
+    }
+    
+    /* Tablo stili iyileştirmeleri */
+    #homeworkSchedulePrint table {
+        box-shadow: none !important;
+        margin-top: 0.1cm !important;
+    }
+    
+    /* Tooltip gösterimi için */
+    #homeworkSchedulePrint td[title]:hover::after {
+        content: attr(title);
+        position: absolute;
+        left: 0;
+        top: 100%;
+        z-index: 1;
+        background: white;
+        border: 1px solid black;
+        padding: 2px 5px;
+        font-size: 8px;
+        max-width: 200px;
+        white-space: normal;
+    }
+    
+    /* Boş sayfaları engelle */
+    body::after {
+        content: "" !important;
+        display: block !important;
+        height: 0 !important;
+        clear: both !important;
+        page-break-after: avoid !important;
+    }
+}
+
+/* Mobil uyumluluk için medya sorguları */
+@media screen and (max-width: 768px) {
+    #homeworkSchedulePrint {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        transform: scale(1) !important;
+        transform-origin: top left !important;
+    }
+    
+    #homeworkSchedulePrint table {
+        width: 100% !important;
+        font-size: 8px !important;
+    }
+    
+    #homeworkSchedulePrint th:first-child,
+    #homeworkSchedulePrint td:first-child {
+        min-width: 80px !important;
+    }
+    
+    #homeworkSchedulePrint th div[style*="writing-mode"] {
+        height: 60px !important;
+        font-size: 6px !important;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    #homeworkSchedulePrint table {
+        font-size: 7px !important;
+    }
+    
+    #homeworkSchedulePrint th:first-child,
+    #homeworkSchedulePrint td:first-child {
+        min-width: 60px !important;
+    }
+    
+    #homeworkSchedulePrint th div[style*="writing-mode"] {
+        height: 50px !important;
+        font-size: 5px !important;
+    }
+} 
