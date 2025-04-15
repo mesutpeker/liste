@@ -240,9 +240,9 @@ function createPrintableVersion(className, table) {
     const printWrapper = document.createElement('div');
     printWrapper.id = 'homeworkSchedulePrint'; // Print div'i için doğrudan ID atıyoruz
     printWrapper.style.width = '100%';
-    printWrapper.style.maxWidth = '297mm'; // A4 genişliği (yatay)
-    printWrapper.style.minHeight = '210mm'; // A4 yüksekliği (yatay)
-    printWrapper.style.margin = '0 auto'; // Sayfayı ortala
+    printWrapper.style.maxWidth = '100%'; // A4 genişliği (yatay)
+    printWrapper.style.minHeight = 'auto'; // A4 yüksekliği (yatay) yerine auto
+    printWrapper.style.margin = '0'; // Sayfayı ortala
     printWrapper.style.pageBreakInside = 'avoid';
     printWrapper.style.pageBreakAfter = 'avoid';
     printWrapper.style.overflow = 'visible';
@@ -281,7 +281,7 @@ function createPrintableVersion(className, table) {
     container.style.pageBreakInside = 'avoid';
     container.style.pageBreakAfter = 'avoid';
     container.style.height = 'auto'; // A4 yüksekliğine sabitlenmedi
-    container.style.width = 'calc(297mm - 0.4cm)'; // Padding hesaba katılmış genişlik
+    container.style.width = '100%'; // Genişliği %100 yap
     container.style.boxSizing = 'border-box';
     
     // Başlık
@@ -307,6 +307,7 @@ function createPrintableVersion(className, table) {
     table.style.pageBreakInside = 'avoid';
     table.style.border = '1px solid #000';
     table.style.boxSizing = 'border-box';
+    table.style.transformOrigin = 'top left'; // Transform origin ekle
     
     // TH ve TD stillerini güncelle
     const allCells = table.querySelectorAll('th, td');
@@ -326,8 +327,8 @@ function createPrintableVersion(className, table) {
     // İlk sütun (öğrenci adı) genişliğini ayarla
     const firstColumnCells = table.querySelectorAll('tr > *:first-child');
     firstColumnCells.forEach(cell => {
-        cell.style.width = '35%';
-        cell.style.maxWidth = '35%';
+        cell.style.width = '25%'; // 35% yerine 25% yap
+        cell.style.maxWidth = '25%'; // 35% yerine 25% yap
         cell.style.textAlign = 'left';
         cell.style.paddingLeft = '5px';
         cell.style.whiteSpace = 'normal'; // Öğrenci ismi için normal text wrap
@@ -341,7 +342,7 @@ function createPrintableVersion(className, table) {
     
     // Diğer sütunların genişliğini hafta sayısına göre dinamik ayarla
     const otherColumnCells = table.querySelectorAll('tr > *:not(:first-child)');
-    const weekWidth = 65 / columnCount;
+    const weekWidth = 75 / columnCount; // 65 yerine 75 yap
     otherColumnCells.forEach(cell => {
         cell.style.width = `${weekWidth}%`;
         cell.style.maxWidth = `${weekWidth}%`;
@@ -378,6 +379,56 @@ function createPrintableVersion(className, table) {
     
     return printWrapper;
 }
+
+// Yazdırma işlemi
+document.getElementById('printScheduleBtn').addEventListener('click', function() {
+    // Önce tarihleri kontrol et
+    const startDate = document.getElementById('startDate').valueAsDate;
+    const endDate = document.getElementById('endDate').valueAsDate;
+    
+    if (!startDate || !endDate) {
+        alert('Lütfen geçerli bir tarih aralığı seçin.');
+        return;
+    }
+    
+    if (startDate > endDate) {
+        alert('Başlangıç tarihi bitiş tarihinden sonra olamaz.');
+        return;
+    }
+    
+    // Yazdırma için yeni çizelge oluştur (forPrint=true)
+    generateHomeworkSchedule(startDate, endDate, true);
+    
+    // Sayfa hazırsa yazdır
+    setTimeout(() => {
+        // Yazdırma tablosunun boyutunu kontrol et ve ayarla
+        const printArea = document.getElementById('homeworkSchedulePrint');
+        if (printArea) {
+            const columnCount = printArea.querySelector('table').querySelectorAll('th').length - 1;
+            if (columnCount > 10) {
+                // Kolonlar sayfa genişliğine sığmayabilir, fontları daha da küçült
+                printArea.querySelectorAll('th, td').forEach(cell => {
+                    cell.style.fontSize = cell.tagName === 'TH' ? '6px' : '7px';
+                    cell.style.padding = '1px';
+                });
+                
+                // Dikey başlıkları daha kompakt hale getir
+                printArea.querySelectorAll('th div[style*="writing-mode"]').forEach(div => {
+                    div.style.fontSize = '6px';
+                    div.style.height = '50px';
+                });
+            }
+            
+            // Yazdırma işlemini başlat
+            window.print();
+            
+            // Yazdırma işlemi tamamlandıktan sonra gizle
+            setTimeout(() => {
+                printArea.style.display = 'none';
+            }, 1000);
+        }
+    }, 300);
+});
 
 // Tarih formatı
 function formatDate(date) {
