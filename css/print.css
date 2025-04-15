@@ -3,6 +3,7 @@
     @page {
         size: landscape;
         margin: 0.2cm;
+        margin-bottom: 0cm;
     }
     
     /* Tüm içeriği gizle, sadece yazdırma alanını göster */
@@ -12,7 +13,7 @@
         height: 100% !important;
         width: 100% !important;
         background: none !important;
-        overflow: visible !important;
+        overflow: hidden !important;
         -webkit-print-color-adjust: exact !important;
         print-color-adjust: exact !important;
     }
@@ -32,20 +33,24 @@
     }
     
     #homeworkSchedulePrint {
-        position: fixed !important;
+        position: absolute !important;
         left: 0 !important;
         top: 0 !important;
         width: 100% !important;
-        height: 100% !important;
-        max-height: 100% !important;
+        height: auto !important;
+        max-height: none !important;
         box-sizing: border-box !important;
         overflow: visible !important;
         background-color: white !important;
         padding: 0 !important;
         margin: 0 !important;
         z-index: 9999 !important;
+        page-break-inside: avoid !important;
+        page-break-after: auto !important;
+        page-break-before: auto !important;
     }
     
+    /* Tablo genişliğini sayfaya tam sığdır */
     #homeworkSchedulePrint table {
         display: table !important;
         width: 100% !important;
@@ -62,6 +67,7 @@
         page-break-inside: avoid !important;
         page-break-after: avoid !important;
         page-break-before: avoid !important;
+        transform-origin: top left !important;
     }
     
     #homeworkSchedulePrint thead {
@@ -307,6 +313,7 @@
         height: 0 !important;
         clear: both !important;
         page-break-after: avoid !important;
+        page-break-inside: avoid !important;
     }
 }
 
