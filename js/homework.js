@@ -286,7 +286,10 @@ function createPrintableVersion(className, table) {
     
     // Başlık
     const title = document.createElement('h3');
-    title.textContent = `${className} - Ödev Çizelgesi`;
+    // Özelleştirilmiş başlığı al, yoksa varsayılan başlığı kullan
+    const customTitle = document.getElementById('scheduleTitle').value.trim();
+    const titleText = customTitle || 'Ödev Çizelgesi';
+    title.textContent = `${className} - ${titleText}`;
     title.style.textAlign = 'center';
     title.style.margin = '0 0 0.1cm 0';
     title.style.padding = '0';
