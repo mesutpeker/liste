@@ -25,14 +25,19 @@
     
     /* Sadece yazdırma alanını göster */
     #homeworkSchedulePrint,
-    #homeworkSchedulePrint * {
+    #homeworkSchedulePrint *,
+    #customSchedulePrint,
+    #customSchedulePrint *,
+    #seating-plan-print-section,
+    #seating-plan-print-section * {
         visibility: visible !important;
         display: block !important;
         overflow: visible !important;
         box-sizing: border-box !important;
     }
     
-    #homeworkSchedulePrint {
+    #homeworkSchedulePrint,
+    #customSchedulePrint {
         position: absolute !important;
         left: 0 !important;
         top: 0 !important;
@@ -51,7 +56,8 @@
     }
     
     /* Tablo genişliğini sayfaya tam sığdır */
-    #homeworkSchedulePrint table {
+    #homeworkSchedulePrint table,
+    #customSchedulePrint table {
         display: table !important;
         width: 100% !important;
         max-width: 100% !important;
@@ -90,17 +96,40 @@
     #homeworkSchedulePrint td {
         display: table-cell !important;
         box-sizing: border-box !important;
-        border: 1px solid #000 !important;
+        border: 2px solid #000 !important;
         empty-cells: show !important;
         overflow: visible !important;
         height: auto !important;
     }
     
+    /* Öğrenci numarası sütunu (ilk sütun) */
     #homeworkSchedulePrint th:first-child,
     #homeworkSchedulePrint td:first-child {
-        width: 25% !important;
-        min-width: 25% !important;
-        max-width: 25% !important;
+        width: 8.75% !important; /* 25% * 0.35 */
+        min-width: 8.75% !important;
+        max-width: 8.75% !important;
+        text-align: center !important;
+        padding: 2px !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        font-size: 9px !important;
+        line-height: 1.2 !important;
+        height: 25px !important;
+        border: 2px solid #000 !important;
+        font-weight: bold !important;
+    }
+
+    /* Öğrenci numarası başlık hücresi */
+    #homeworkSchedulePrint th:first-child {
+        background-color: #e0e0e0 !important;
+    }
+
+    /* Öğrenci adı sütunu (ikinci sütun) */
+    #homeworkSchedulePrint th:nth-child(2),
+    #homeworkSchedulePrint td:nth-child(2) {
+        width: 16.25% !important; /* 25% * 0.65 */
+        min-width: 16.25% !important;
+        max-width: 16.25% !important;
         text-align: left !important;
         padding-left: 5px !important;
         white-space: normal !important;
@@ -108,20 +137,22 @@
         font-size: 9px !important;
         line-height: 1.2 !important;
         height: 25px !important;
-        border-left: 1px solid #000 !important;
-        border-right: 1px solid #000 !important;
-        border-bottom: 1px solid #000 !important;
+        border: 2px solid #000 !important;
         font-weight: bold !important;
     }
+
+    /* Öğrenci adı başlık hücresi */
+    #homeworkSchedulePrint th:nth-child(2) {
+        background-color: #e0e0e0 !important;
+    }
     
-    #homeworkSchedulePrint th:not(:first-child),
-    #homeworkSchedulePrint td:not(:first-child) {
+    #homeworkSchedulePrint th:not(:first-child):not(:nth-child(2)),
+    #homeworkSchedulePrint td:not(:first-child):not(:nth-child(2)) {
         text-align: center !important;
         vertical-align: middle !important;
         padding: 2px 1px !important;
         height: 25px !important;
-        border-left: 1px solid #000 !important;
-        border-right: 1px solid #000 !important;
+        border: 2px solid #000 !important;
     }
     
     #homeworkSchedulePrint th:last-child {
@@ -132,45 +163,43 @@
         border-right: 1px solid #000 !important;
     }
     
-    #homeworkSchedulePrint th div[style*="writing-mode"] {
-        min-height: 45px !important;
-        height: 70px !important;
-        width: auto !important;
-        margin: 0 auto !important;
-        font-size: 7px !important;
-        line-height: 1 !important;
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        transform: rotate(180deg) !important;
-        writing-mode: vertical-rl !important;
+    /* Yatay başlık stilleri */
+    #homeworkSchedulePrint th:not(:first-child):not(:nth-child(2)) {
+        font-size: 10px !important;
         font-weight: bold !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        height: auto !important;
+        min-height: 40px !important;
+        line-height: 1.2 !important;
+        padding: 4px 2px !important;
+        background-color: #e0e0e0 !important;
     }
     
     /* Sütun sayısına göre dinamik genişlikler */
-    #homeworkSchedulePrint.cols-1-5 th:not(:first-child),
-    #homeworkSchedulePrint.cols-1-5 td:not(:first-child) {
+    #homeworkSchedulePrint.cols-1-5 th:not(:first-child):not(:nth-child(2)),
+    #homeworkSchedulePrint.cols-1-5 td:not(:first-child):not(:nth-child(2)) {
         width: 15% !important;
         min-width: 15% !important;
         max-width: 15% !important;
     }
     
-    #homeworkSchedulePrint.cols-6-10 th:not(:first-child),
-    #homeworkSchedulePrint.cols-6-10 td:not(:first-child) {
+    #homeworkSchedulePrint.cols-6-10 th:not(:first-child):not(:nth-child(2)),
+    #homeworkSchedulePrint.cols-6-10 td:not(:first-child):not(:nth-child(2)) {
         width: 7.5% !important;
         min-width: 7.5% !important;
         max-width: 7.5% !important;
     }
     
-    #homeworkSchedulePrint.cols-11-15 th:not(:first-child),
-    #homeworkSchedulePrint.cols-11-15 td:not(:first-child) {
+    #homeworkSchedulePrint.cols-11-15 th:not(:first-child):not(:nth-child(2)),
+    #homeworkSchedulePrint.cols-11-15 td:not(:first-child):not(:nth-child(2)) {
         width: 5% !important;
         min-width: 5% !important;
         max-width: 5% !important;
     }
     
-    #homeworkSchedulePrint.cols-16-20 th:not(:first-child),
-    #homeworkSchedulePrint.cols-16-20 td:not(:first-child) {
+    #homeworkSchedulePrint.cols-16-20 th:not(:first-child):not(:nth-child(2)),
+    #homeworkSchedulePrint.cols-16-20 td:not(:first-child):not(:nth-child(2)) {
         width: 3.75% !important;
         min-width: 3.75% !important;
         max-width: 3.75% !important;
@@ -201,39 +230,20 @@
     
     /* Tablo başlıkları ve çizgileri */
     #homeworkSchedulePrint th {
-        border-top: 1px solid #000 !important;
-        border-bottom: 1px solid #000 !important;
-        border-left: 1px solid #000 !important;
-        border-right: 1px solid #000 !important;
+        border: 2px solid #000 !important;
         font-weight: bold !important;
     }
     
     #homeworkSchedulePrint td {
-        border: 1px solid #000 !important;
+        border: 2px solid #000 !important;
     }
     
-    /* İlk sütun (öğrenci adları) için özel stil */
-    #homeworkSchedulePrint td:first-child {
-        border-left: 1px solid #000 !important;
-        border-right: 1px solid #000 !important;
-        border-bottom: 1px solid #000 !important;
-        font-weight: bold !important;
-    }
+    /* Öğrenci verisi hücreleri özel stil - border artık üstte tanımlı */
     
     /* Tablo dış çerçevesi */
     #homeworkSchedulePrint table {
-        border: 1px solid #000 !important;
+        border: 2px solid #000 !important;
         box-shadow: none !important;
-    }
-    
-    /* Diğer hücreler için ince çizgi */
-    #homeworkSchedulePrint td:not(:first-child):not(:last-child) {
-        border: 1px solid #000 !important;
-    }
-    
-    /* Son satırın alt çizgisini kalınlaştır */
-    #homeworkSchedulePrint tr:last-child td {
-        border-bottom: 1px solid #000 !important;
     }
     
     /* Boş hücreleri göster */
@@ -251,17 +261,9 @@
         font-size: 8px !important;
         margin: 0 !important;
         padding: 0 !important;
-        border: 1px solid #000 !important;
+        border: 2px solid #000 !important;
         page-break-after: avoid !important;
         page-break-before: avoid !important;
-    }
-    
-    #homeworkSchedulePrint table,
-    #homeworkSchedulePrint th,
-    #homeworkSchedulePrint td {
-        border: 1px solid #000 !important;
-        padding: 1px !important;
-        box-sizing: border-box !important;
     }
     
     #homeworkSchedulePrint th, 
@@ -271,8 +273,8 @@
     }
     
     /* Diğer sütunlar - hafta sütunları eşit genişlikte */
-    #homeworkSchedulePrint th:not(:first-child), 
-    #homeworkSchedulePrint td:not(:first-child) {
+    #homeworkSchedulePrint th:not(:first-child):not(:nth-child(2)), 
+    #homeworkSchedulePrint td:not(:first-child):not(:nth-child(2)) {
         text-align: center !important;
         vertical-align: middle !important;
     }
@@ -338,9 +340,9 @@
         min-width: 80px !important;
     }
     
-    #homeworkSchedulePrint th div[style*="writing-mode"] {
-        height: 60px !important;
-        font-size: 6px !important;
+    #homeworkSchedulePrint th:not(:first-child):not(:nth-child(2)) {
+        font-size: 8px !important;
+        min-height: 35px !important;
     }
 }
 
@@ -354,8 +356,788 @@
         min-width: 60px !important;
     }
     
-    #homeworkSchedulePrint th div[style*="writing-mode"] {
-        height: 50px !important;
-        font-size: 5px !important;
+    #homeworkSchedulePrint th:not(:first-child):not(:nth-child(2)) {
+        font-size: 7px !important;
+        min-height: 30px !important;
+    }
+}
+
+/* ====== ÖZEL ÇİZELGE YAZDIRMA STİLLERİ ====== */
+@media print {
+    /* Özel çizelge için tüm stilleri kopyala */
+    #customSchedulePrint thead,
+    #customSchedulePrint tbody,
+    #customSchedulePrint tr,
+    #customSchedulePrint th,
+    #customSchedulePrint td {
+        display: table-header-group !important;
+    }
+    
+    #customSchedulePrint tbody {
+        display: table-row-group !important;
+    }
+    
+    #customSchedulePrint tr {
+        display: table-row !important;
+        width: 100% !important;
+        page-break-inside: avoid !important;
+        height: 25px !important;
+        min-height: 25px !important;
+    }
+    
+    #customSchedulePrint th,
+    #customSchedulePrint td {
+        display: table-cell !important;
+        box-sizing: border-box !important;
+        border: 2px solid #000 !important;
+        empty-cells: show !important;
+        overflow: visible !important;
+        height: auto !important;
+    }
+    
+    /* Öğrenci numarası sütunu (ilk sütun) */
+    #customSchedulePrint th:first-child,
+    #customSchedulePrint td:first-child {
+        width: 8.75% !important;
+        min-width: 8.75% !important;
+        max-width: 8.75% !important;
+        text-align: center !important;
+        padding: 2px !important;
+        white-space: nowrap !important;
+        overflow: visible !important;
+        font-size: 9px !important;
+        line-height: 1.2 !important;
+        height: 25px !important;
+        border: 2px solid #000 !important;
+        font-weight: bold !important;
+    }
+
+    /* Öğrenci numarası başlık hücresi */
+    #customSchedulePrint th:first-child {
+        background-color: #e0e0e0 !important;
+    }
+
+    /* Öğrenci adı sütunu (ikinci sütun) */
+    #customSchedulePrint th:nth-child(2),
+    #customSchedulePrint td:nth-child(2) {
+        width: 16.25% !important;
+        min-width: 16.25% !important;
+        max-width: 16.25% !important;
+        text-align: left !important;
+        padding-left: 5px !important;
+        white-space: normal !important;
+        overflow: visible !important;
+        font-size: 9px !important;
+        line-height: 1.2 !important;
+        height: 25px !important;
+        border: 2px solid #000 !important;
+        font-weight: bold !important;
+    }
+
+    /* Öğrenci adı başlık hücresi */
+    #customSchedulePrint th:nth-child(2) {
+        background-color: #e0e0e0 !important;
+    }
+    
+    /* Özel sütunlar */
+    #customSchedulePrint th:not(:first-child):not(:nth-child(2)),
+    #customSchedulePrint td:not(:first-child):not(:nth-child(2)) {
+        text-align: center !important;
+        vertical-align: middle !important;
+        padding: 2px 1px !important;
+        height: 25px !important;
+        border: 2px solid #000 !important;
+    }
+    
+    /* Yatay başlıklar için */
+    #customSchedulePrint th:not(:first-child):not(:nth-child(2)) {
+        font-size: 10px !important;
+        font-weight: bold !important;
+        white-space: normal !important;
+        word-wrap: break-word !important;
+        height: auto !important;
+        min-height: 40px !important;
+        line-height: 1.2 !important;
+        padding: 4px 2px !important;
+        background-color: #e0e0e0 !important;
+    }
+    
+    /* Sütun sayısına göre dinamik genişlikler */
+    #customSchedulePrint.cols-1-5 th:not(:first-child):not(:nth-child(2)),
+    #customSchedulePrint.cols-1-5 td:not(:first-child):not(:nth-child(2)) {
+        width: 15% !important;
+        min-width: 15% !important;
+        max-width: 15% !important;
+    }
+    
+    #customSchedulePrint.cols-6-10 th:not(:first-child):not(:nth-child(2)),
+    #customSchedulePrint.cols-6-10 td:not(:first-child):not(:nth-child(2)) {
+        width: 7.5% !important;
+        min-width: 7.5% !important;
+        max-width: 7.5% !important;
+    }
+    
+    #customSchedulePrint.cols-11-15 th:not(:first-child):not(:nth-child(2)),
+    #customSchedulePrint.cols-11-15 td:not(:first-child):not(:nth-child(2)) {
+        width: 5% !important;
+        min-width: 5% !important;
+        max-width: 5% !important;
+    }
+    
+    #customSchedulePrint.cols-16-20 th:not(:first-child):not(:nth-child(2)),
+    #customSchedulePrint.cols-16-20 td:not(:first-child):not(:nth-child(2)) {
+        width: 3.75% !important;
+        min-width: 3.75% !important;
+        max-width: 3.75% !important;
+    }
+    
+    /* Öğrenci sayısına göre font boyutları */
+    #customSchedulePrint.rows-1-15 td {
+        font-size: 9px !important;
+    }
+    
+    #customSchedulePrint.rows-16-30 td {
+        font-size: 8px !important;
+    }
+    
+    #customSchedulePrint.rows-31-plus td {
+        font-size: 7px !important;
+    }
+    
+    /* Başlık stili */
+    #customSchedulePrint h3 {
+        font-size: 12px !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        margin: 0 0 0.3cm 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+    
+    /* ====== SINIF OTURMA PLANI YAZDIRMA STİLLERİ - SADE TASARIM ====== */
+    
+    #seating-plan-print-section {
+        position: absolute !important;
+        left: 0 !important;
+        top: 0 !important;
+        width: 100% !important;
+        height: 100vh !important;
+        max-height: none !important;
+        box-sizing: border-box !important;
+        overflow: visible !important;
+        background: white !important;
+        padding: 0.8cm !important;
+        margin: 0 !important;
+        z-index: 9999 !important;
+        page-break-inside: avoid !important;
+    }
+    
+    /* Sade yazdırma alanı tasarımı */
+    #seating-plan-print-section .seating-plan {
+        border: 2px solid #000 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        padding: 20px !important;
+        background: white !important;
+        width: 100% !important;
+        height: calc(100vh - 2.5cm) !important;
+        max-height: calc(100vh - 2.5cm) !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    /* Sade başlık tasarımı */
+    #seating-plan-print-section h4 {
+        font-size: 18px !important;
+        font-weight: bold !important;
+        text-align: center !important;
+        margin: 0 0 20px 0 !important;
+        color: #000 !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        position: relative !important;
+        padding: 10px 0 !important;
+        border-bottom: 2px solid #000 !important;
+    }
+    
+    #seating-plan-print-section .classroom {
+        border: none !important;
+        padding: 0 !important;
+        flex: 1 !important;
+        background: white !important;
+        position: relative !important;
+        overflow: hidden !important;
+        display: flex !important;
+        flex-direction: column !important;
+    }
+    
+    /* Sade öğretmen alanı */
+    #seating-plan-print-section .teacher-area {
+        margin-bottom: 25px !important;
+        text-align: center !important;
+        position: relative !important;
+        padding: 10px !important;
+        background: white !important;
+        border: 2px solid #000 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+    }
+    
+    /* Sade öğretmen masası tasarımı */
+    #seating-plan-print-section .teacher-desk {
+        background: #f5f5f5 !important;
+        color: #000 !important;
+        padding: 10px 20px !important;
+        font-weight: bold !important;
+        font-size: 12px !important;
+        display: inline-block !important;
+        border: 2px solid #000 !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        text-transform: uppercase !important;
+        letter-spacing: 1px !important;
+        position: relative !important;
+    }
+    
+    #seating-plan-print-section .student-desks {
+        display: grid !important;
+        gap: 35px !important;
+        flex: 1 !important;
+        align-content: space-evenly !important;
+        justify-content: center !important;
+        padding: 25px 15px !important;
+        background: white !important;
+        border-radius: 0 !important;
+        position: relative !important;
+        overflow: hidden !important;
+        max-width: 100% !important;
+        margin: 0 auto !important;
+        justify-items: center !important;
+    }
+    
+    /* Grid sütun sayısını sıra sayısına göre ayarla - Varsayılan */
+    #seating-plan-print-section .student-desks {
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)) !important;
+    }
+    
+    /* Sade masa tasarımı - Sütun sayısına göre genişlik */
+    #seating-plan-print-section .desk-row {
+        border: 2px solid #000 !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: flex !important;
+        flex-direction: column !important;
+        height: 65px !important;
+        min-height: 65px !important;
+        max-height: 65px !important;
+        border-radius: 0 !important;
+        box-shadow: none !important;
+        transform: none !important;
+        position: relative !important;
+        overflow: visible !important;
+    }
+    
+    /* Sade masa numarası tasarımı */
+    #seating-plan-print-section .desk-number {
+        background: #f0f0f0 !important;
+        color: #000 !important;
+        margin: 0 !important;
+        border-radius: 0 !important;
+        width: 100% !important;
+        height: 22px !important;
+        font-size: 11px !important;
+        font-weight: bold !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-transform: uppercase !important;
+        letter-spacing: 0.5px !important;
+        position: relative !important;
+        border-bottom: 1px solid #000 !important;
+    }
+    
+    #seating-plan-print-section .student-seats {
+        flex: 1 !important;
+        display: grid !important;
+        grid-template-columns: 1fr 1fr !important;
+        gap: 1px !important;
+        width: 100% !important;
+        padding: 0 !important;
+    }
+    
+    /* Sade öğrenci koltuk tasarımı */
+    #seating-plan-print-section .student-seat {
+        border: 1px solid #000 !important;
+        border-radius: 0 !important;
+        background: white !important;
+        margin: 0 !important;
+        padding: 2px !important;
+        cursor: default !important;
+        min-height: 40px !important;
+        max-height: 40px !important;
+        font-size: 9px !important;
+        color: #000 !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        text-align: center !important;
+        line-height: 1.1 !important;
+        width: 100% !important;
+        box-sizing: border-box !important;
+        position: relative !important;
+    }
+    
+    #seating-plan-print-section .student-seat:first-child {
+        border-right: 0.5px solid #000 !important;
+    }
+    
+    /* Boş koltuk sade tasarımı */
+    #seating-plan-print-section .student-seat.empty {
+        background: #f8f8f8 !important;
+        color: #666 !important;
+        border-color: #ccc !important;
+    }
+    
+    /* Dolu koltuk sade tasarımı */
+    #seating-plan-print-section .student-seat.occupied {
+        background: white !important;
+        border-color: #000 !important;
+        box-shadow: none !important;
+    }
+    
+    /* Seçili koltuk sade tasarımı */
+    #seating-plan-print-section .student-seat.selected {
+        background: #e8e8e8 !important;
+        border-color: #000 !important;
+        box-shadow: none !important;
+    }
+    
+    /* Sade öğrenci ismi stili */
+    #seating-plan-print-section .student-name {
+        font-size: 9px !important;
+        font-weight: bold !important;
+        color: #000 !important;
+        line-height: 1.1 !important;
+        text-align: center !important;
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+        -webkit-hyphens: auto !important;
+        hyphens: auto !important;
+        white-space: normal !important;
+        width: 100% !important;
+    }
+    
+    #seating-plan-print-section .empty-seat {
+        display: none !important;
+    }
+    
+    /* Sade sayfa ayarları */
+    @page {
+        size: A4 portrait !important;
+        margin: 0.3cm !important;
+    }
+    
+    /* Sıra sayısına göre grid optimizasyonu */
+    @media print {
+        /* Varsayılan grid */
+        #seating-plan-print-section .student-desks {
+            grid-template-columns: repeat(auto-fit, minmax(110px, 1fr)) !important;
+            max-width: 100% !important;
+        }
+        
+        /* Grid sınıfları ile sütun sayısını kontrol et - Dengeli yerleşim */
+        /* 1 Sütun - En Geniş Masalar (300px) */
+        #seating-plan-print-section .student-desks.desk-count-1 {
+            grid-template-columns: 300px !important;
+            gap: 0 !important;
+            justify-content: center !important;
+            align-content: center !important;
+            padding: 20px !important;
+            max-width: 90% !important;
+            margin: 0 auto !important;
+            justify-items: center !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-1 .desk-row {
+            width: 300px !important;
+            min-width: 300px !important;
+            max-width: 300px !important;
+        }
+        
+        /* 2 Sütun - Çok Geniş Masalar (250px) */
+        #seating-plan-print-section .student-desks.desk-count-2 {
+            grid-template-columns: repeat(2, 250px) !important;
+            gap: 30px !important;
+            justify-content: center !important;
+            align-content: space-evenly !important;
+            padding: 25px 20px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            justify-items: center !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-2 .desk-row {
+            width: 250px !important;
+            min-width: 250px !important;
+            max-width: 250px !important;
+        }
+        
+        /* 3 Sütun - Orta Genişlik Masalar (220px) */
+        #seating-plan-print-section .student-desks.desk-count-3,
+        #seating-plan-print-section .student-desks.desk-count-4,
+        #seating-plan-print-section .student-desks.desk-count-5,
+        #seating-plan-print-section .student-desks.desk-count-6 {
+            grid-template-columns: repeat(3, 220px) !important;
+            gap: 15px !important;
+            justify-content: center !important;
+            align-content: space-evenly !important;
+            padding: 20px 10px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            justify-items: center !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-3 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-4 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-5 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-6 .desk-row {
+            width: 220px !important;
+            min-width: 220px !important;
+            max-width: 220px !important;
+        }
+        
+        /* 7-9 Masa - 3 Sütun, Dar Masalar (210px) */
+        #seating-plan-print-section .student-desks.desk-count-7,
+        #seating-plan-print-section .student-desks.desk-count-8,
+        #seating-plan-print-section .student-desks.desk-count-9 {
+            grid-template-columns: repeat(3, 210px) !important;
+            gap: 10px !important;
+            justify-content: center !important;
+            align-content: space-evenly !important;
+            padding: 20px 8px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            justify-items: center !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-7 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-8 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-9 .desk-row {
+            width: 210px !important;
+            min-width: 210px !important;
+            max-width: 210px !important;
+        }
+        
+        /* 10-12 Masa - 4 Sütun, Daha Dar Masalar (180px) */
+        #seating-plan-print-section .student-desks.desk-count-10,
+        #seating-plan-print-section .student-desks.desk-count-11,
+        #seating-plan-print-section .student-desks.desk-count-12 {
+            grid-template-columns: repeat(4, 180px) !important;
+            gap: 6px !important;
+            justify-content: center !important;
+            align-content: space-evenly !important;
+            padding: 20px 8px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            justify-items: center !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-10 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-11 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-12 .desk-row {
+            width: 180px !important;
+            min-width: 180px !important;
+            max-width: 180px !important;
+        }
+        
+        /* 13-20 Masa - 5 Sütun, Çok Dar Masalar (170px) */
+        #seating-plan-print-section .student-desks.desk-count-13,
+        #seating-plan-print-section .student-desks.desk-count-14,
+        #seating-plan-print-section .student-desks.desk-count-15,
+        #seating-plan-print-section .student-desks.desk-count-16,
+        #seating-plan-print-section .student-desks.desk-count-17,
+        #seating-plan-print-section .student-desks.desk-count-18,
+        #seating-plan-print-section .student-desks.desk-count-19,
+        #seating-plan-print-section .student-desks.desk-count-20 {
+            grid-template-columns: repeat(5, 170px) !important;
+            gap: 3px !important;
+            justify-content: center !important;
+            align-content: space-evenly !important;
+            padding: 15px 5px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            justify-items: center !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-13 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-14 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-15 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-16 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-17 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-18 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-19 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-20 .desk-row {
+            width: 170px !important;
+            min-width: 170px !important;
+            max-width: 170px !important;
+        }
+        
+        /* 21+ Masa - 6 Sütun, En Dar Masalar (155px) */
+        #seating-plan-print-section .student-desks.desk-count-21,
+        #seating-plan-print-section .student-desks.desk-count-22,
+        #seating-plan-print-section .student-desks.desk-count-23,
+        #seating-plan-print-section .student-desks.desk-count-24,
+        #seating-plan-print-section .student-desks.desk-count-25,
+        #seating-plan-print-section .student-desks.desk-count-26,
+        #seating-plan-print-section .student-desks.desk-count-27,
+        #seating-plan-print-section .student-desks.desk-count-28,
+        #seating-plan-print-section .student-desks.desk-count-29,
+        #seating-plan-print-section .student-desks.desk-count-30 {
+            grid-template-columns: repeat(6, 155px) !important;
+            gap: 2px !important;
+            justify-content: center !important;
+            align-content: space-evenly !important;
+            padding: 10px 5px !important;
+            max-width: 100% !important;
+            margin: 0 auto !important;
+            justify-items: center !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-21 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-22 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-23 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-24 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-25 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-26 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-27 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-28 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-29 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-30 .desk-row {
+            width: 155px !important;
+            min-width: 155px !important;
+            max-width: 155px !important;
+        }
+        
+        /* Sıra sayısına göre font boyutu optimizasyonu */
+        #seating-plan-print-section .student-desks.desk-count-1,
+        #seating-plan-print-section .student-desks.desk-count-2 {
+            /* 1-2 sıra için büyük font */
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-1 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-2 .student-name {
+            font-size: 10px !important;
+            font-weight: bold !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-1 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-2 .desk-number {
+            font-size: 13px !important;
+            font-weight: bold !important;
+        }
+        
+        /* 3-6 sıra için orta font */
+        #seating-plan-print-section .student-desks.desk-count-3 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-4 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-5 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-6 .student-name {
+            font-size: 9px !important;
+            font-weight: bold !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-3 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-4 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-5 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-6 .desk-number {
+            font-size: 12px !important;
+            font-weight: bold !important;
+        }
+        
+        /* Çok fazla sıra varsa font boyutunu küçült */
+        #seating-plan-print-section .student-desks.desk-count-25 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-26 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-27 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-28 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-29 .student-name,
+        #seating-plan-print-section .student-desks.desk-count-30 .student-name {
+            font-size: 7px !important;
+            font-weight: bold !important;
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-25 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-26 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-27 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-28 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-29 .desk-number,
+        #seating-plan-print-section .student-desks.desk-count-30 .desk-number {
+            font-size: 10px !important;
+            font-weight: bold !important;
+        }
+        
+        /* Çok sıra olan durumlar için masa boyutları (25+ masa = 6 sütun = 155px) */
+        #seating-plan-print-section .student-desks.desk-count-25 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-26 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-27 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-28 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-29 .desk-row,
+        #seating-plan-print-section .student-desks.desk-count-30 .desk-row {
+            height: 60px !important;
+            min-height: 60px !important;
+            max-height: 60px !important;
+            /* Genişlik zaten üstte 155px olarak ayarlı */
+        }
+        
+        #seating-plan-print-section .student-desks.desk-count-25 .student-seat,
+        #seating-plan-print-section .student-desks.desk-count-26 .student-seat,
+        #seating-plan-print-section .student-desks.desk-count-27 .student-seat,
+        #seating-plan-print-section .student-desks.desk-count-28 .student-seat,
+        #seating-plan-print-section .student-desks.desk-count-29 .student-seat,
+        #seating-plan-print-section .student-desks.desk-count-30 .student-seat {
+            min-height: 36px !important;
+            max-height: 36px !important;
+        }
+         
+                   /* Manuel sütun seçimi sınıfları - Dengeli yerleşim */
+          /* Manuel 1 Sütun - En Geniş (300px) */
+          #seating-plan-print-section .student-desks.print-columns-1 {
+              grid-template-columns: 300px !important;
+              gap: 0 !important;
+              justify-content: center !important;
+              align-content: center !important;
+              padding: 20px !important;
+              max-width: 90% !important;
+              margin: 0 auto !important;
+              justify-items: center !important;
+          }
+          
+          #seating-plan-print-section .student-desks.print-columns-1 .desk-row {
+              width: 300px !important;
+              min-width: 300px !important;
+              max-width: 300px !important;
+          }
+          
+          /* Manuel 2 Sütun - Çok Geniş (250px) */
+          #seating-plan-print-section .student-desks.print-columns-2 {
+              grid-template-columns: repeat(2, 250px) !important;
+              gap: 30px !important;
+              justify-content: center !important;
+              align-content: space-evenly !important;
+              padding: 25px 20px !important;
+              max-width: 100% !important;
+              margin: 0 auto !important;
+              justify-items: center !important;
+          }
+          
+          #seating-plan-print-section .student-desks.print-columns-2 .desk-row {
+              width: 250px !important;
+              min-width: 250px !important;
+              max-width: 250px !important;
+          }
+          
+          /* Manuel 3 Sütun - Orta Genişlik (220px) */
+          #seating-plan-print-section .student-desks.print-columns-3 {
+              grid-template-columns: repeat(3, 220px) !important;
+              gap: 15px !important;
+              justify-content: center !important;
+              align-content: space-evenly !important;
+              padding: 20px 10px !important;
+              max-width: 100% !important;
+              margin: 0 auto !important;
+              justify-items: center !important;
+          }
+          
+          #seating-plan-print-section .student-desks.print-columns-3 .desk-row {
+              width: 220px !important;
+              min-width: 220px !important;
+              max-width: 220px !important;
+          }
+          
+          /* Manuel 4 Sütun - Dar (180px) */
+          #seating-plan-print-section .student-desks.print-columns-4 {
+              grid-template-columns: repeat(4, 180px) !important;
+              gap: 6px !important;
+              justify-content: center !important;
+              align-content: space-evenly !important;
+              padding: 20px 8px !important;
+              max-width: 100% !important;
+              margin: 0 auto !important;
+              justify-items: center !important;
+          }
+          
+          #seating-plan-print-section .student-desks.print-columns-4 .desk-row {
+              width: 180px !important;
+              min-width: 180px !important;
+              max-width: 180px !important;
+          }
+          
+          /* Manuel 5 Sütun - En Dar (170px) */
+          #seating-plan-print-section .student-desks.print-columns-5 {
+              grid-template-columns: repeat(5, 170px) !important;
+              gap: 3px !important;
+              justify-content: center !important;
+              align-content: space-evenly !important;
+              padding: 15px 5px !important;
+              max-width: 100% !important;
+              margin: 0 auto !important;
+              justify-items: center !important;
+          }
+          
+          #seating-plan-print-section .student-desks.print-columns-5 .desk-row {
+              width: 170px !important;
+              min-width: 170px !important;
+              max-width: 170px !important;
+          }
+          
+                     /* Manuel seçimde font boyutu ayarları */
+           #seating-plan-print-section .student-desks.print-columns-1 .student-name {
+               font-size: 10px !important;
+               font-weight: bold !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-1 .desk-number {
+               font-size: 13px !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-2 .student-name {
+               font-size: 10px !important;
+               font-weight: bold !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-2 .desk-number {
+               font-size: 12px !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-3 .student-name {
+               font-size: 9px !important;
+               font-weight: bold !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-3 .desk-number {
+               font-size: 11px !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-4 .student-name,
+           #seating-plan-print-section .student-desks.print-columns-5 .student-name {
+               font-size: 8px !important;
+               font-weight: bold !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-4 .desk-number,
+           #seating-plan-print-section .student-desks.print-columns-5 .desk-number {
+               font-size: 11px !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-5 .student-name {
+               font-size: 7px !important;
+               font-weight: bold !important;
+           }
+           
+           #seating-plan-print-section .student-desks.print-columns-5 .desk-number {
+               font-size: 10px !important;
+           }
     }
 } 

@@ -339,4 +339,463 @@ h1 {
         height: 24px;
         right: 3px;
     }
+}
+
+/* Sınıf Oturma Planı Stilleri */
+.seating-plan {
+    margin: 20px 0;
+}
+
+.classroom {
+    background-color: #f8f9fa;
+    border: 2px solid #dee2e6;
+    border-radius: 10px;
+    padding: 20px;
+    min-height: 400px;
+}
+
+.teacher-area {
+    margin-bottom: 30px;
+    text-align: center;
+}
+
+.teacher-desk {
+    background-color: #FF5722;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 10px;
+    display: inline-block;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 4px 8px rgba(255, 87, 34, 0.3);
+}
+
+.teacher-desk i {
+    margin-right: 8px;
+    font-size: 18px;
+}
+
+.student-desks {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.desk-row {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+    padding: 8px;
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease;
+}
+
+.desk-row:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.desk-number {
+    background-color: #6c63ff;
+    color: white;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 12px;
+    margin-right: 10px;
+    flex-shrink: 0;
+}
+
+.student-seats {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+}
+
+.student-seat {
+    flex: 1;
+    min-height: 45px;
+    border: 2px solid #dee2e6;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    padding: 5px;
+    text-align: center;
+}
+
+.student-seat.occupied {
+    background-color: #e3f2fd;
+    border-color: #2196f3;
+}
+
+.student-seat.occupied:hover {
+    background-color: #bbdefb;
+    border-color: #1976d2;
+}
+
+.student-seat.empty {
+    background-color: #fafafa;
+    border-color: #e0e0e0;
+    color: #999;
+}
+
+.student-seat.empty:hover {
+    background-color: #f0f0f0;
+    border-color: #bdbdbd;
+}
+
+.student-seat.selected {
+    background-color: #fff3e0 !important;
+    border-color: #ff9800 !important;
+    box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.3);
+}
+
+.student-name {
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.2;
+    color: #333;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+}
+
+.empty-seat {
+    font-size: 10px;
+    color: #999;
+    font-style: italic;
+}
+
+/* Responsive tasarım */
+@media (max-width: 768px) {
+    .student-desks {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+    
+    .desk-row {
+        margin-bottom: 8px;
+    }
+    
+    .student-name {
+        font-size: 10px;
+    }
+    
+    .teacher-desk {
+        padding: 10px 20px;
+        font-size: 12px;
+    }
+}
+
+@media (max-width: 480px) {
+    .classroom {
+        padding: 15px;
+    }
+    
+    .student-seat {
+        min-height: 35px;
+        padding: 3px;
+    }
+    
+    .student-name {
+        font-size: 9px;
+    }
+    
+    .desk-number {
+        width: 25px;
+        height: 25px;
+        font-size: 10px;
+    }
+}
+
+/* Yazdırma Başlığı Modal Stilleri */
+#printTitleModal .modal-content {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+#printTitleModal .modal-header {
+    border-radius: 10px 10px 0 0;
+}
+
+#printTitleModal .modal-footer {
+    border-radius: 0 0 10px 10px;
+    border-top: 1px solid #e9ecef;
+}
+
+#printTitleModal .form-control {
+    border-radius: 8px;
+    border: 2px solid #e0e0e0;
+    transition: all 0.3s ease;
+}
+
+#printTitleModal .form-control:focus {
+    border-color: #FF5722;
+    box-shadow: 0 0 0 0.2rem rgba(255, 87, 34, 0.25);
+}
+
+#printTitleModal .btn {
+    border-radius: 8px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+#printTitleModal .btn-success:hover {
+    background-color: #218838;
+    transform: translateY(-1px);
+}
+
+#printTitleModal .btn-secondary:hover {
+    background-color: #5a6268;
+    transform: translateY(-1px);
+}
+
+/* PDF Rehber Modal Stilleri */
+#pdfGuideModal .modal-dialog {
+    max-width: 1200px;
+}
+
+.step-card {
+    border: 1px solid #e9ecef;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+.step-card:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.step-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    color: white;
+    padding: 15px 20px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+
+.step-number {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 50%;
+    width: 35px;
+    height: 35px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+.step-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.step-content {
+    padding: 20px;
+}
+
+.step-image-container {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    border: 2px dashed #dee2e6;
+    transition: all 0.3s ease;
+}
+
+.step-image-container:hover {
+    border-color: #007bff;
+    background: #e3f2fd;
+}
+
+.step-image {
+    border-radius: 6px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-height: 500px;
+    min-height: 300px;
+    width: 100%;
+    object-fit: contain;
+    background-color: #f8f9fa;
+    border: 1px solid #e9ecef;
+}
+
+.step-instructions {
+    padding-left: 20px;
+}
+
+.step-instructions p {
+    margin-bottom: 12px;
+    line-height: 1.6;
+}
+
+.step-instructions .alert {
+    padding: 8px 12px;
+    margin-bottom: 10px;
+    border-radius: 6px;
+}
+
+.step-instructions-inline {
+    margin-top: 15px;
+    padding: 15px;
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-radius: 8px;
+    border-left: 4px solid #007bff;
+}
+
+.step-instructions-inline p {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 500;
+    color: #495057;
+}
+
+.step-instructions-inline .bi {
+    font-size: 18px;
+    margin-right: 10px;
+}
+
+.highlight {
+    background: linear-gradient(120deg, #a8e6cf 0%, #dcedc8 100%);
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-weight: 600;
+    color: #2e7d32;
+}
+
+/* Responsive düzenlemeler */
+@media (max-width: 768px) {
+    .step-instructions {
+        padding-left: 0;
+        margin-top: 15px;
+    }
+    
+    .step-header {
+        text-align: center;
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .step-number {
+        margin: 0 auto;
+    }
+    
+    #pdfGuideModal .modal-dialog {
+        margin: 10px;
+        max-width: none;
+    }
+}
+
+/* Buton hover efektleri */
+.btn-outline-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 123, 255, 0.3);
+}
+
+/* Modal başlık stili */
+#pdfGuideModal .modal-header {
+    background: linear-gradient(135deg, #007bff, #0056b3);
+    border-radius: 0;
+}
+
+#pdfGuideModal .modal-title {
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* Özet kutusu */
+#pdfGuideModal .alert-success {
+    background: linear-gradient(135deg, #d4edda, #c3e6cb);
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+/* Adım numaralandırma animasyonu */
+.step-number {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(1.05);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+
+
+/* Resim hover efekti */
+.step-image:hover {
+    transform: scale(1.02);
+    transition: transform 0.3s ease;
+}
+
+/* Modal footer düzenlemesi */
+#pdfGuideModal .modal-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+/* Nasıl İndirilir butonu animasyonu */
+.pulse-btn {
+    animation: pulse-glow 2s infinite;
+    position: relative;
+    overflow: hidden;
+}
+
+.pulse-btn:hover {
+    animation: none;
+    transform: scale(1.05);
+    transition: all 0.3s ease;
+}
+
+@keyframes pulse-glow {
+    0% {
+        box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(255, 193, 7, 0.8), 0 0 30px rgba(255, 193, 7, 0.6);
+    }
+    100% {
+        box-shadow: 0 0 5px rgba(255, 193, 7, 0.5);
+    }
+}
+
+.pulse-btn i {
+    animation: bounce 1.5s ease-in-out infinite;
+}
+
+@keyframes bounce {
+    0%, 100% {
+        transform: translateY(0);
+    }
+    50% {
+        transform: translateY(-3px);
+    }
 } 
