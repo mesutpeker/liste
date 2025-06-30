@@ -135,6 +135,19 @@ document.addEventListener('DOMContentLoaded', function() {
         generateHomeworkSchedule(startDate, endDate);
     });
     
+    // Çizelge türü seçimi için event listener
+    document.getElementById('weeklySchedule').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('daySelectionArea').style.display = 'none';
+        }
+    });
+    
+    document.getElementById('dailySchedule').addEventListener('change', function() {
+        if (this.checked) {
+            document.getElementById('daySelectionArea').style.display = 'block';
+        }
+    });
+    
     // Yazdır butonuna tıklanınca
     document.getElementById('printScheduleBtn').addEventListener('click', function() {
         console.log('Yazdır butonu tıklandı');
@@ -169,17 +182,19 @@ document.addEventListener('DOMContentLoaded', function() {
             const printStyle = window.getComputedStyle(printSection);
             console.log('Yazdırma alanı görünürlüğü:', printStyle.display, printStyle.visibility);
             
-            // Öğrenci isimlerinin tam görünmesi için son kontrol
+            // Öğrenci isimlerinin tek satırda görünmesi için son kontrol
             const studentNameCells = printSection.querySelectorAll('td:first-child');
             studentNameCells.forEach(cell => {
-                cell.style.whiteSpace = 'normal';
-                cell.style.overflow = 'visible';
-                cell.style.textOverflow = 'clip';
+                cell.style.whiteSpace = 'nowrap';
+                cell.style.overflow = 'hidden';
+                cell.style.textOverflow = 'ellipsis';
                 cell.style.lineHeight = '1.1';
                 
                 // Eğer isim çok uzunsa font boyutunu küçült
                 if (cell.textContent.length > 40) {
                     cell.style.fontSize = '8px';
+                } else if (cell.textContent.length > 25) {
+                    cell.style.fontSize = '9px';
                 }
             });
             
@@ -212,18 +227,13 @@ document.addEventListener('DOMContentLoaded', function() {
                         headerCells[i].style.verticalAlign = 'bottom';
                         headerCells[i].style.padding = '2px 0';
                         
-                        // Dikey başlıkları düzelt
-                        const div = headerCells[i].querySelector('div[style*="writing-mode"]');
-                        if (div) {
-                            div.style.margin = '0 auto';
-                            div.style.width = 'auto';
-                            div.style.height = '70px';
-                            div.style.display = 'flex';
-                            div.style.alignItems = 'center';
-                            div.style.justifyContent = 'center';
-                            div.style.lineHeight = '1';
-                            div.style.fontSize = '7px';
-                        }
+                        // Yatay başlıkları düzelt (artık div yok, doğrudan th)
+                        headerCells[i].style.fontSize = '10px';
+                        headerCells[i].style.fontWeight = 'bold';
+                        headerCells[i].style.whiteSpace = 'normal';
+                        headerCells[i].style.wordWrap = 'break-word';
+                        headerCells[i].style.minHeight = '40px';
+                        headerCells[i].style.lineHeight = '1.2';
                     }
                 }
                 
@@ -359,11 +369,75 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalElement.classList.add('show');
             }
         }
+        
+        // Özel çizelge butonlarına tıklanınca
+        if (e.target.closest('.btn-custom-schedule')) {
+            const button = e.target.closest('.btn-custom-schedule');
+            const className = button.getAttribute('data-class');
+            currentScheduleClass = className;
+            
+            // Modal başlığını sınıf adıyla güncelle
+            document.getElementById('customScheduleModalLabel').textContent = `${className} - Özel Çizelge`;
+            
+            // Sütun başlıklarını varsayılan değerlerle oluştur
+            generateColumnHeaders();
+            
+            // Modal'ı aç
+            try {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const modal = new bootstrap.Modal(document.getElementById('customScheduleModal'));
+                    modal.show();
+                    console.log('Özel çizelge modal açıldı');
+                } else {
+                    console.log('Bootstrap Modal bulunamadı, alternatif yöntem deneniyor...');
+                    $('#customScheduleModal').modal('show');
+                }
+            } catch (error) {
+                console.error('Modal açılırken hata oluştu:', error);
+                const modalElement = document.getElementById('customScheduleModal');
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+            }
+        }
+        
+        // Sınıf oturma planı butonlarına tıklanınca
+        if (e.target.closest('.btn-seating-plan')) {
+            const button = e.target.closest('.btn-seating-plan');
+            const className = button.getAttribute('data-class');
+            currentScheduleClass = className;
+            
+            // Modal başlığını sınıf adıyla güncelle
+            document.getElementById('seatingPlanModalLabel').textContent = `${className} - Sınıf Oturma Planı`;
+            
+            // Plan başlığını güncelle
+            document.getElementById('seatingPlanTitle').value = `${className} Oturma Planı`;
+            
+            // Modal'ı aç
+            try {
+                if (typeof bootstrap !== 'undefined' && bootstrap.Modal) {
+                    const modal = new bootstrap.Modal(document.getElementById('seatingPlanModal'));
+                    modal.show();
+                    console.log('Oturma planı modal açıldı');
+                } else {
+                    console.log('Bootstrap Modal bulunamadı, alternatif yöntem deneniyor...');
+                    $('#seatingPlanModal').modal('show');
+                }
+            } catch (error) {
+                console.error('Modal açılırken hata oluştu:', error);
+                const modalElement = document.getElementById('seatingPlanModal');
+                modalElement.style.display = 'block';
+                modalElement.classList.add('show');
+            }
+        }
     });
     
     // Sayfanın yüklenmesinin tamamlandığını logla
     debugLog('Sayfa tamamen yüklendi, uygulama kullanıma hazır');
+
+
 });
+
+
 
 // PDF dosyasını işleme
 async function processFile(file) {

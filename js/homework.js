@@ -22,17 +22,26 @@ function generateHomeworkSchedule(startDate, endDate, forPrint = false) {
     
     console.log('Öğrenci sayısı:', students.length);
     
-    // Tarih aralığındaki haftaları hesapla
-    const weeks = getWeeksInRange(startDate, endDate);
-    console.log('Hesaplanan haftalar:', weeks);
+    // Çizelge türünü kontrol et
+    const scheduleType = document.querySelector('input[name="scheduleType"]:checked').value;
     
-    if (weeks.length === 0) {
-        alert('Seçilen tarih aralığında hafta bulunamadı.');
+    // Tarih aralığındaki dönemleri hesapla (haftalık veya günlük)
+    let periods;
+    if (scheduleType === 'weekly') {
+        periods = getWeeksInRange(startDate, endDate);
+        console.log('Hesaplanan haftalar:', periods);
+    } else {
+        periods = getDaysInRange(startDate, endDate);
+        console.log('Hesaplanan günler:', periods);
+    }
+    
+    if (periods.length === 0) {
+        alert(`Seçilen tarih aralığında ${scheduleType === 'weekly' ? 'hafta' : 'gün'} bulunamadı.`);
         return;
     }
     
     // Önizleme için tabloyu oluştur
-    const scheduleTable = createScheduleTable(students, weeks);
+    const scheduleTable = createScheduleTable(students, periods, scheduleType);
     
     // Eğer yazdırma için değilse, önizleme alanını güncelle
     if (!forPrint) {
@@ -110,8 +119,66 @@ function getWeeksInRange(startDate, endDate) {
     return weeks;
 }
 
+// Tarih aralığındaki günleri hesaplama (seçilen günler için)
+function getDaysInRange(startDate, endDate) {
+    const days = [];
+    
+    // Tarih doğruluğu kontrolü
+    if (!(startDate instanceof Date) || !(endDate instanceof Date) || isNaN(startDate) || isNaN(endDate)) {
+        console.error('Geçersiz tarih:', { startDate, endDate });
+        return days;
+    }
+    
+    // Seçilen günleri al
+    const selectedDays = [];
+    document.querySelectorAll('.day-checkbox:checked').forEach(checkbox => {
+        selectedDays.push(parseInt(checkbox.value));
+    });
+    
+    if (selectedDays.length === 0) {
+        alert('Lütfen en az bir gün seçin.');
+        return days;
+    }
+    
+    console.log('Gün hesaplama başlangıcı:', { startDate, endDate, selectedDays });
+    
+    const currentDate = new Date(startDate);
+    let dayCounter = 0;
+    
+    // Her gün için kontrol et, seçilen günler arasındaysa ekle
+    while (currentDate <= endDate && dayCounter < 300) { // Güvenlik için maksimum 300 gün
+        const dayOfWeek = currentDate.getDay(); // 0=Pazar, 1=Pazartesi, ..., 6=Cumartesi
+        
+        if (selectedDays.includes(dayOfWeek)) {
+            days.push({
+                start: new Date(currentDate),
+                end: new Date(currentDate),
+                dayName: getDayName(dayOfWeek)
+            });
+            
+            console.log(`Gün ${days.length} eklendi:`, { 
+                date: formatDate(currentDate), 
+                dayName: getDayName(dayOfWeek) 
+            });
+        }
+        
+        // Sonraki güne geç
+        currentDate.setDate(currentDate.getDate() + 1);
+        dayCounter++;
+    }
+    
+    console.log(`Toplam ${days.length} gün bulundu`);
+    return days;
+}
+
+// Gün adını getirme
+function getDayName(dayNumber) {
+    const dayNames = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+    return dayNames[dayNumber];
+}
+
 // Çizelge tablosunu oluşturma
-function createScheduleTable(students, weeks) {
+function createScheduleTable(students, periods, scheduleType) {
     const table = document.createElement('table');
     table.className = 'table table-bordered table-sm';
     table.style.tableLayout = 'fixed';
@@ -125,12 +192,42 @@ function createScheduleTable(students, weeks) {
     const thead = document.createElement('thead');
     const headerRow = document.createElement('tr');
     
+    // Sütun genişliği hesaplaması - günlük modda daha dar sütunlar
+    let studentColumnWidth, periodColumnWidth;
+    
+    if (scheduleType === 'daily' && periods.length > 10) {
+        // Çok fazla gün varsa öğrenci sütununu daha dar yap
+        studentColumnWidth = 20;
+        periodColumnWidth = (80 / periods.length).toFixed(2);
+    } else if (periods.length > 15) {
+        // Çok fazla dönem varsa öğrenci sütununu daha dar yap
+        studentColumnWidth = 15;
+        periodColumnWidth = (85 / periods.length).toFixed(2);
+    } else {
+        // Normal durumda
+        studentColumnWidth = 25;
+        periodColumnWidth = (75 / periods.length).toFixed(2);
+    }
+    
+    // Öğrenci numarası sütunu
+    const thStudentNo = document.createElement('th');
+    thStudentNo.textContent = 'ÖĞRENCİ NO';
+    thStudentNo.style.width = `${studentColumnWidth * 0.35}%`; // Öğrenci no için daha dar
+    thStudentNo.style.minWidth = `${studentColumnWidth * 0.35}%`;
+    thStudentNo.style.maxWidth = `${studentColumnWidth * 0.35}%`;
+    thStudentNo.style.textAlign = 'center';
+    thStudentNo.style.padding = '2px 5px';
+    thStudentNo.style.verticalAlign = 'bottom';
+    thStudentNo.style.fontWeight = 'bold';
+    thStudentNo.style.border = '2px solid black';
+    headerRow.appendChild(thStudentNo);
+
     // Öğrenci adı sütunu
     const thStudent = document.createElement('th');
     thStudent.textContent = 'ÖĞRENCİ ADI';
-    thStudent.style.width = '25%';
-    thStudent.style.minWidth = '25%';
-    thStudent.style.maxWidth = '25%';
+    thStudent.style.width = `${studentColumnWidth * 0.65}%`; // Öğrenci adı için daha geniş
+    thStudent.style.minWidth = `${studentColumnWidth * 0.65}%`;
+    thStudent.style.maxWidth = `${studentColumnWidth * 0.65}%`;
     thStudent.style.textAlign = 'left';
     thStudent.style.padding = '2px 5px';
     thStudent.style.verticalAlign = 'bottom';
@@ -139,13 +236,13 @@ function createScheduleTable(students, weeks) {
     headerRow.appendChild(thStudent);
     
     // Hafta sütunları için kalan genişliği hesapla
-    const weekColumnWidth = (75 / weeks.length).toFixed(2); // 75% kalan genişlik
+    const weekColumnWidth = (75 / periods.length).toFixed(2); // 75% kalan genişlik
     
-    weeks.forEach((week, index) => {
+    periods.forEach((period, index) => {
         const th = document.createElement('th');
-        th.style.width = `${weekColumnWidth}%`;
-        th.style.minWidth = `${weekColumnWidth}%`;
-        th.style.maxWidth = `${weekColumnWidth}%`;
+        th.style.width = `${periodColumnWidth}%`;
+        th.style.minWidth = `${periodColumnWidth}%`;
+        th.style.maxWidth = `${periodColumnWidth}%`;
         th.style.padding = '2px 1px';
         th.style.textAlign = 'center';
         th.style.verticalAlign = 'bottom';
@@ -153,22 +250,21 @@ function createScheduleTable(students, weeks) {
         th.style.fontWeight = 'bold';
         th.style.border = '2px solid black';
         
-        const headerDiv = document.createElement('div');
-        headerDiv.style.writingMode = 'vertical-rl';
-        headerDiv.style.transform = 'rotate(180deg)';
-        headerDiv.style.whiteSpace = 'nowrap';
-        headerDiv.style.height = '70px';
-        headerDiv.style.width = 'auto';
-        headerDiv.style.margin = '0 auto';
-        headerDiv.style.display = 'flex';
-        headerDiv.style.alignItems = 'center';
-        headerDiv.style.justifyContent = 'center';
-        headerDiv.style.fontSize = '7px';
-        headerDiv.style.lineHeight = '1';
-        headerDiv.style.fontWeight = 'bold';
-        headerDiv.innerHTML = `HAFTA ${index + 1}<br>${formatDate(week.start)}<br>${formatDate(week.end)}`;
+        // Yatay başlık için normal metin kullan
+        if (scheduleType === 'weekly') {
+            th.innerHTML = `HAFTA ${index + 1}<br>${formatDate(period.start)}<br>${formatDate(period.end)}`;
+        } else {
+            th.innerHTML = `${period.dayName}<br>${formatDate(period.start)}`;
+        }
         
-        th.appendChild(headerDiv);
+        // Başlık stillerini ayarla
+        th.style.whiteSpace = 'normal';
+        th.style.wordWrap = 'break-word';
+        th.style.fontSize = '10px';
+        th.style.fontWeight = 'bold';
+        th.style.height = 'auto';
+        th.style.minHeight = '40px';
+        th.style.lineHeight = '1.1';
         headerRow.appendChild(th);
     });
     
@@ -181,12 +277,38 @@ function createScheduleTable(students, weeks) {
         const row = document.createElement('tr');
         row.style.height = '25px';
         
+        // Öğrenci numarası sütunu
+        const tdStudentNo = document.createElement('td');
+        tdStudentNo.textContent = student.student_no;
+        tdStudentNo.style.width = `${studentColumnWidth * 0.35}%`;
+        tdStudentNo.style.minWidth = `${studentColumnWidth * 0.35}%`;
+        tdStudentNo.style.maxWidth = `${studentColumnWidth * 0.35}%`;
+        tdStudentNo.style.textAlign = 'center';
+        tdStudentNo.style.paddingLeft = '2px';
+        tdStudentNo.style.paddingRight = '2px';
+        tdStudentNo.style.whiteSpace = 'nowrap';
+        tdStudentNo.style.overflow = 'visible';
+        tdStudentNo.style.fontSize = '9px';
+        tdStudentNo.style.lineHeight = '1.2';
+        tdStudentNo.style.height = '25px';
+        tdStudentNo.style.fontWeight = 'bold';
+        tdStudentNo.style.borderLeft = '2px solid black';
+        tdStudentNo.style.borderRight = '1px solid black';
+        tdStudentNo.title = student.student_no;
+        
+        // Son satır için alt kenarlık
+        if (index === students.length - 1) {
+            tdStudentNo.style.borderBottom = '2px solid black';
+        }
+        
+        row.appendChild(tdStudentNo);
+
         // Öğrenci adı sütunu
         const tdName = document.createElement('td');
-        tdName.textContent = `${student.student_no} - ${student.first_name} ${student.last_name}`;
-        tdName.style.width = '25%';
-        tdName.style.minWidth = '25%';
-        tdName.style.maxWidth = '25%';
+        tdName.textContent = `${student.first_name} ${student.last_name}`;
+        tdName.style.width = `${studentColumnWidth * 0.65}%`;
+        tdName.style.minWidth = `${studentColumnWidth * 0.65}%`;
+        tdName.style.maxWidth = `${studentColumnWidth * 0.65}%`;
         tdName.style.textAlign = 'left';
         tdName.style.paddingLeft = '5px';
         tdName.style.whiteSpace = 'normal';
@@ -195,9 +317,9 @@ function createScheduleTable(students, weeks) {
         tdName.style.lineHeight = '1.2';
         tdName.style.height = '25px';
         tdName.style.fontWeight = 'bold';
-        tdName.style.borderLeft = '2px solid black';
+        tdName.style.borderLeft = '1px solid black';
         tdName.style.borderRight = '2px solid black';
-        tdName.title = `${student.student_no} - ${student.first_name} ${student.last_name}`;
+        tdName.title = `${student.first_name} ${student.last_name}`;
         
         // Son satır için alt kenarlık
         if (index === students.length - 1) {
@@ -207,11 +329,11 @@ function createScheduleTable(students, weeks) {
         row.appendChild(tdName);
         
         // Hafta sütunları
-        weeks.forEach((_, weekIndex) => {
+        periods.forEach((_, periodIndex) => {
             const td = document.createElement('td');
-            td.style.width = `${weekColumnWidth}%`;
-            td.style.minWidth = `${weekColumnWidth}%`;
-            td.style.maxWidth = `${weekColumnWidth}%`;
+            td.style.width = `${periodColumnWidth}%`;
+            td.style.minWidth = `${periodColumnWidth}%`;
+            td.style.maxWidth = `${periodColumnWidth}%`;
             td.style.textAlign = 'center';
             td.style.verticalAlign = 'middle';
             td.style.padding = '2px 1px';
@@ -354,17 +476,16 @@ function createPrintableVersion(className, table) {
         cell.style.padding = '2px 1px';
     });
     
-    // Dikey başlıkları hizala
-    const headerDivs = table.querySelectorAll('th div[style*="writing-mode"]');
-    headerDivs.forEach(div => {
-        div.style.height = '70px';
-        div.style.margin = '0 auto';
-        div.style.width = 'auto';
-        div.style.fontSize = '7px';
-        div.style.lineHeight = '1';
-        div.style.display = 'flex';
-        div.style.alignItems = 'center';
-        div.style.justifyContent = 'center';
+    // Yatay başlıkları hizala (dikey başlık divleri artık yok)
+    const periodHeaders = table.querySelectorAll('th:not(:first-child):not(:nth-child(2))');
+    periodHeaders.forEach(th => {
+        th.style.fontSize = '10px';
+        th.style.fontWeight = 'bold';
+        th.style.whiteSpace = 'normal';
+        th.style.wordWrap = 'break-word';
+        th.style.minHeight = '40px';
+        th.style.padding = '4px 2px';
+        th.style.lineHeight = '1.2';
     });
     
     // Başlık hücrelerini güncelle
@@ -415,10 +536,11 @@ document.getElementById('printScheduleBtn').addEventListener('click', function()
                     cell.style.padding = '1px';
                 });
                 
-                // Dikey başlıkları daha kompakt hale getir
-                printArea.querySelectorAll('th div[style*="writing-mode"]').forEach(div => {
-                    div.style.fontSize = '6px';
-                    div.style.height = '50px';
+                // Yatay başlıkları daha kompakt hale getir
+                printArea.querySelectorAll('th:not(:first-child):not(:nth-child(2))').forEach(th => {
+                    th.style.fontSize = '9px';
+                    th.style.minHeight = '35px';
+                    th.style.padding = '3px 1px';
                 });
             }
             
@@ -436,4 +558,382 @@ document.getElementById('printScheduleBtn').addEventListener('click', function()
 // Tarih formatı
 function formatDate(date) {
     return `${date.getDate().toString().padStart(2, '0')}.${(date.getMonth() + 1).toString().padStart(2, '0')}.${date.getFullYear()}`;
-} 
+}
+
+// ====== ÖZEL ÇİZELGE FONKSİYONLARI ======
+
+// Sütun başlık input'larını oluşturma
+function generateColumnHeaders() {
+    const columnCount = parseInt(document.getElementById('columnCount').value) || 5;
+    const columnHeadersContainer = document.getElementById('columnHeaders');
+    
+    // Önce mevcut input'ları temizle
+    columnHeadersContainer.innerHTML = '';
+    
+    // Her sütun için input oluştur
+    for (let i = 0; i < columnCount; i++) {
+        const colDiv = document.createElement('div');
+        colDiv.className = 'col-md-4 mb-2';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'form-control column-header-input';
+        input.id = `columnHeader${i}`;
+        input.placeholder = `Sütun ${i + 1} başlığı`;
+        input.value = `Sütun ${i + 1}`;
+        
+        colDiv.appendChild(input);
+        columnHeadersContainer.appendChild(colDiv);
+    }
+    
+    console.log(`${columnCount} sütun için başlık input'ları oluşturuldu`);
+}
+
+// Özel çizelge oluşturma
+function generateCustomSchedule() {
+    console.log('Özel çizelge oluşturuluyor...');
+    
+    // Öğrenci listesini al
+    const students = classesByName[currentScheduleClass];
+    if (!students || students.length === 0) {
+        alert('Bu sınıfta öğrenci bulunamadı.');
+        return;
+    }
+    
+    // Sütun başlıklarını al
+    const columnHeaders = [];
+    const columnInputs = document.querySelectorAll('.column-header-input');
+    
+    columnInputs.forEach(input => {
+        const headerText = input.value.trim();
+        if (headerText) {
+            columnHeaders.push(headerText);
+        }
+    });
+    
+    if (columnHeaders.length === 0) {
+        alert('Lütfen en az bir sütun başlığı girin.');
+        return;
+    }
+    
+    console.log('Sütun başlıkları:', columnHeaders);
+    console.log('Öğrenci sayısı:', students.length);
+    
+    // Özel çizelge tablosunu oluştur
+    const customTable = createCustomScheduleTable(students, columnHeaders);
+    
+    // Önizleme alanını güncelle
+    const previewArea = document.getElementById('customSchedulePreview');
+    previewArea.innerHTML = '';
+    
+    // Önizleme için uyarı notu
+    const previewNote = document.createElement('div');
+    previewNote.className = 'alert alert-info mb-2';
+    previewNote.innerHTML = `
+        <small><i class="bi bi-info-circle"></i> Yazdırıldığında tablo A4 yatay sayfaya otomatik sığdırılacaktır. Buradaki görünüm sadece önizleme amaçlıdır.</small>
+    `;
+    previewArea.appendChild(previewNote);
+    previewArea.appendChild(customTable.cloneNode(true));
+    
+    // Yazdırma için tabloyu oluştur
+    const printSection = createCustomPrintableVersion(currentScheduleClass, customTable.cloneNode(true));
+    
+    // Var olan yazdırma alanını temizle
+    const oldPrintArea = document.getElementById('customSchedulePrint');
+    if (oldPrintArea) {
+        oldPrintArea.remove();
+    }
+    
+    // Yazdırma alanını document.body'ye ekle (gizli olarak)
+    printSection.style.display = 'none';
+    document.body.appendChild(printSection);
+    
+    // Yazdır butonunu etkinleştir
+    document.getElementById('printCustomScheduleBtn').disabled = false;
+    console.log('Özel çizelge oluşturuldu ve hazırlandı');
+    
+    return printSection;
+}
+
+// Özel çizelge tablosunu oluşturma
+function createCustomScheduleTable(students, columnHeaders) {
+    const table = document.createElement('table');
+    table.className = 'table table-bordered table-sm';
+    table.style.tableLayout = 'fixed';
+    table.style.width = '100%';
+    table.style.borderCollapse = 'collapse';
+    table.style.borderSpacing = '0';
+    table.style.emptyCells = 'show';
+    table.style.border = '2px solid black';
+    
+    // Sütun genişliği hesaplaması
+    const totalColumns = columnHeaders.length + 2; // Öğrenci no + öğrenci adı + özel sütunlar
+    const studentNoColumnWidth = 8.75;  // %8.75 öğrenci numarası için
+    const studentNameColumnWidth = 16.25; // %16.25 öğrenci adı için
+    const customColumnWidth = (75 / columnHeaders.length).toFixed(2); // Kalan %75'i özel sütunlar arasında böl
+    
+    // Başlık satırı
+    const thead = document.createElement('thead');
+    const headerRow = document.createElement('tr');
+    
+    // Öğrenci numarası sütunu
+    const thStudentNo = document.createElement('th');
+    thStudentNo.textContent = 'ÖĞRENCİ NO';
+    thStudentNo.style.width = `${studentNoColumnWidth}%`;
+    thStudentNo.style.minWidth = `${studentNoColumnWidth}%`;
+    thStudentNo.style.maxWidth = `${studentNoColumnWidth}%`;
+    thStudentNo.style.textAlign = 'center';
+    thStudentNo.style.padding = '2px 5px';
+    thStudentNo.style.verticalAlign = 'bottom';
+    thStudentNo.style.fontWeight = 'bold';
+    thStudentNo.style.border = '2px solid black';
+    headerRow.appendChild(thStudentNo);
+    
+    // Öğrenci adı sütunu
+    const thStudent = document.createElement('th');
+    thStudent.textContent = 'ÖĞRENCİ ADI';
+    thStudent.style.width = `${studentNameColumnWidth}%`;
+    thStudent.style.minWidth = `${studentNameColumnWidth}%`;
+    thStudent.style.maxWidth = `${studentNameColumnWidth}%`;
+    thStudent.style.textAlign = 'left';
+    thStudent.style.padding = '2px 5px';
+    thStudent.style.verticalAlign = 'bottom';
+    thStudent.style.fontWeight = 'bold';
+    thStudent.style.border = '2px solid black';
+    headerRow.appendChild(thStudent);
+    
+    // Özel sütun başlıkları
+    columnHeaders.forEach((header, index) => {
+        const th = document.createElement('th');
+        th.style.width = `${customColumnWidth}%`;
+        th.style.minWidth = `${customColumnWidth}%`;
+        th.style.maxWidth = `${customColumnWidth}%`;
+        th.style.padding = '2px 1px';
+        th.style.textAlign = 'center';
+        th.style.verticalAlign = 'bottom';
+        th.style.position = 'relative';
+        th.style.fontWeight = 'bold';
+        th.style.border = '2px solid black';
+        
+        // Yatay başlık için normal metin kullan
+        th.textContent = header;
+        
+        // Başlık stillerini ayarla
+        th.style.whiteSpace = 'normal';
+        th.style.wordWrap = 'break-word';
+        th.style.fontSize = '10px';
+        th.style.fontWeight = 'bold';
+        th.style.height = 'auto';
+        th.style.minHeight = '40px';
+        th.style.lineHeight = '1.2';
+        headerRow.appendChild(th);
+    });
+    
+    thead.appendChild(headerRow);
+    table.appendChild(thead);
+    
+    // Öğrenci satırları
+    const tbody = document.createElement('tbody');
+    students.forEach((student, index) => {
+        const row = document.createElement('tr');
+        row.style.height = '25px';
+        
+        // Öğrenci numarası sütunu
+        const tdStudentNo = document.createElement('td');
+        tdStudentNo.textContent = student.student_no;
+        tdStudentNo.style.width = `${studentNoColumnWidth}%`;
+        tdStudentNo.style.minWidth = `${studentNoColumnWidth}%`;
+        tdStudentNo.style.maxWidth = `${studentNoColumnWidth}%`;
+        tdStudentNo.style.textAlign = 'center';
+        tdStudentNo.style.paddingLeft = '2px';
+        tdStudentNo.style.paddingRight = '2px';
+        tdStudentNo.style.whiteSpace = 'nowrap';
+        tdStudentNo.style.overflow = 'visible';
+        tdStudentNo.style.fontSize = '9px';
+        tdStudentNo.style.lineHeight = '1.2';
+        tdStudentNo.style.height = '25px';
+        tdStudentNo.style.fontWeight = 'bold';
+        tdStudentNo.style.borderLeft = '2px solid black';
+        tdStudentNo.style.borderRight = '1px solid black';
+        tdStudentNo.title = student.student_no;
+        
+        // Son satır için alt kenarlık
+        if (index === students.length - 1) {
+            tdStudentNo.style.borderBottom = '2px solid black';
+        }
+        
+        row.appendChild(tdStudentNo);
+        
+        // Öğrenci adı sütunu
+        const tdName = document.createElement('td');
+        tdName.textContent = `${student.first_name} ${student.last_name}`;
+        tdName.style.width = `${studentNameColumnWidth}%`;
+        tdName.style.minWidth = `${studentNameColumnWidth}%`;
+        tdName.style.maxWidth = `${studentNameColumnWidth}%`;
+        tdName.style.textAlign = 'left';
+        tdName.style.paddingLeft = '5px';
+        tdName.style.whiteSpace = 'normal';
+        tdName.style.overflow = 'visible';
+        tdName.style.fontSize = '9px';
+        tdName.style.lineHeight = '1.2';
+        tdName.style.height = '25px';
+        tdName.style.fontWeight = 'bold';
+        tdName.style.borderLeft = '1px solid black';
+        tdName.style.borderRight = '1px solid black';
+        tdName.title = `${student.first_name} ${student.last_name}`;
+        
+        // Son satır için alt kenarlık
+        if (index === students.length - 1) {
+            tdName.style.borderBottom = '2px solid black';
+        }
+        
+        row.appendChild(tdName);
+        
+        // Özel sütunlar
+        columnHeaders.forEach((_, columnIndex) => {
+            const td = document.createElement('td');
+            td.style.width = `${customColumnWidth}%`;
+            td.style.minWidth = `${customColumnWidth}%`;
+            td.style.maxWidth = `${customColumnWidth}%`;
+            td.style.textAlign = 'center';
+            td.style.verticalAlign = 'middle';
+            td.style.padding = '2px 1px';
+            td.style.border = '1px solid #666';
+            td.style.height = '25px';
+            
+            // Son satır için alt kenarlık
+            if (index === students.length - 1) {
+                td.style.borderBottom = '2px solid black';
+            }
+            
+            td.innerHTML = '&nbsp;';
+            row.appendChild(td);
+        });
+        
+        tbody.appendChild(row);
+    });
+    
+    table.appendChild(tbody);
+    return table;
+}
+
+// Özel çizelge için yazdırılabilir versiyonu oluşturma
+function createCustomPrintableVersion(className, table) {
+    // Print wrapper
+    const printWrapper = document.createElement('div');
+    printWrapper.id = 'customSchedulePrint';
+    printWrapper.style.width = '100%';
+    printWrapper.style.maxWidth = '100%';
+    printWrapper.style.minHeight = 'auto';
+    printWrapper.style.margin = '0';
+    printWrapper.style.pageBreakInside = 'avoid';
+    printWrapper.style.pageBreakAfter = 'avoid';
+    printWrapper.style.overflow = 'visible';
+    printWrapper.style.position = 'relative';
+    printWrapper.style.backgroundColor = 'white';
+    printWrapper.style.display = 'block';
+    printWrapper.style.boxSizing = 'border-box';
+    
+    // Satır ve sütun sayısına göre CSS sınıfları ekle
+    const columnCount = table.querySelectorAll('th').length - 2; // Öğrenci no ve adı sütunlarını çıkar
+    if (columnCount <= 5) {
+        printWrapper.classList.add('cols-1-5');
+    } else if (columnCount <= 10) {
+        printWrapper.classList.add('cols-6-10');
+    } else if (columnCount <= 15) {
+        printWrapper.classList.add('cols-11-15');
+    } else {
+        printWrapper.classList.add('cols-16-20');
+    }
+    
+    const rowCount = table.querySelectorAll('tbody tr').length;
+    if (rowCount <= 15) {
+        printWrapper.classList.add('rows-1-15');
+    } else if (rowCount <= 30) {
+        printWrapper.classList.add('rows-16-30');
+    } else {
+        printWrapper.classList.add('rows-31-plus');
+    }
+    
+    // İçerik konteyneri
+    const container = document.createElement('div');
+    container.style.padding = '0.2cm';
+    container.style.overflow = 'visible';
+    container.style.pageBreakInside = 'avoid';
+    container.style.pageBreakAfter = 'avoid';
+    container.style.height = 'auto';
+    container.style.width = '100%';
+    container.style.boxSizing = 'border-box';
+    
+    // Başlık
+    const title = document.createElement('h3');
+    const customTitle = document.getElementById('customScheduleTitle').value.trim();
+    const titleText = customTitle || 'Özel Çizelge';
+    title.textContent = `${className} - ${titleText}`;
+    title.style.textAlign = 'center';
+    title.style.margin = '0 0 0.1cm 0';
+    title.style.padding = '0';
+    title.style.fontSize = '12px';
+    title.style.fontWeight = 'bold';
+    title.style.display = 'block';
+    
+    container.appendChild(title);
+    
+    // Tablo genişliği ayarlama
+    table.className = 'custom-print-table';
+    table.style.width = '100%';
+    table.style.height = 'auto';
+    table.style.fontSize = columnCount > 10 ? '7px' : '8px';
+    table.style.borderCollapse = 'collapse';
+    table.style.tableLayout = 'fixed';
+    table.style.margin = '0';
+    table.style.pageBreakInside = 'avoid';
+    
+    container.appendChild(table);
+    printWrapper.appendChild(container);
+    
+    return printWrapper;
+}
+
+// Özel çizelge event listener'ları (DOMContentLoaded event'i içinde çalışacak)
+document.addEventListener('DOMContentLoaded', function() {
+    // Sütun sayısı değiştiğinde başlık input'larını yeniden oluştur
+    const columnCountInput = document.getElementById('columnCount');
+    if (columnCountInput) {
+        columnCountInput.addEventListener('input', generateColumnHeaders);
+    }
+    
+    // Özel çizelge oluştur butonu
+    const generateCustomBtn = document.getElementById('generateCustomScheduleBtn');
+    if (generateCustomBtn) {
+        generateCustomBtn.addEventListener('click', generateCustomSchedule);
+    }
+    
+    // Özel çizelge yazdır butonu
+    const printCustomBtn = document.getElementById('printCustomScheduleBtn');
+    if (printCustomBtn) {
+        printCustomBtn.addEventListener('click', function() {
+            console.log('Özel çizelge yazdır butonu tıklandı');
+            
+            const printSection = document.getElementById('customSchedulePrint');
+            if (!printSection) {
+                alert('Önce çizelgeyi oluşturun.');
+                return;
+            }
+            
+            // Yazdırma için tabloyu görünür yap
+            printSection.style.display = 'block';
+            
+            // Yazdırma işlemini başlat
+            setTimeout(() => {
+                console.log('Özel çizelge yazdırma başlatılıyor');
+                window.print();
+                
+                // Yazdırma işleminden sonra gizle
+                setTimeout(() => {
+                    printSection.style.display = 'none';
+                }, 1000);
+            }, 100);
+        });
+    }
+}); 

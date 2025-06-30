@@ -286,6 +286,12 @@ function displayClassesAndStudents(classes) {
                 <button class="btn btn-homework-schedule" style="background-color: #6a3de8; border-color: #6a3de8; color: white;" data-class="${className}">
                     <i class="bi bi-calendar-check"></i> Ödev Çizelgesi
                 </button>
+                <button class="btn btn-custom-schedule" style="background-color: #28a745; border-color: #28a745; color: white;" data-class="${className}">
+                    <i class="bi bi-table"></i> Özel Çizelge
+                </button>
+                <button class="btn btn-seating-plan" style="background-color: #FF5722; border-color: #FF5722; color: white;" data-class="${className}">
+                    <i class="bi bi-grid-3x3-gap"></i> Oturma Planı
+                </button>
             </div>
         `;
         
