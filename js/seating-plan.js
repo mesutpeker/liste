@@ -136,6 +136,9 @@ function renderSeatingPlan() {
     // Kullanıcının girdiği başlığı al, yoksa currentSeatingPlan.title'ı kullan
     const displayTitle = document.getElementById('seatingPlanTitle').value.trim() || currentSeatingPlan.title || 'Sınıf Oturma Planı';
     
+    // Seçilen sütun sayısını al
+    const printColumns = document.getElementById('printColumns').value;
+    
     let html = `
         <div class="seating-plan">
             <h4 class="text-center mb-4">${displayTitle}</h4>
@@ -145,7 +148,7 @@ function renderSeatingPlan() {
                         <i class="bi bi-person-circle"></i> ÖĞRETMEN MASASI
                     </div>
                 </div>
-                <div class="student-desks">
+                <div class="student-desks ${printColumns !== 'auto' ? 'columns-' + printColumns : ''}">
     `;
     
     // Sıraları oluştur
@@ -401,8 +404,13 @@ function executePrint(printTitle) {
     const previewDiv = document.getElementById('seatingPlanPreview');
     if (!previewDiv) return;
     
-    // Seçilen sütun sayısını al
+    // Seçilen sütun sayısını ve yazdırma yönünü al
     const printColumns = document.getElementById('printColumns').value;
+    const printOrientation = document.getElementById('printOrientation').value;
+    
+    console.log('Yazdırma yönü:', printOrientation);
+    console.log('Sütun sayısı:', printColumns);
+    console.log('Masa sayısı:', currentSeatingPlan.deskCount);
     
     // Yazdırma alanı oluştur
     const printSection = document.createElement('div');
@@ -414,6 +422,15 @@ function executePrint(printTitle) {
     // Yazdırma için CSS sınıfı ekle
     printSection.classList.add('print-active');
     
+    // Yazdırma yönü sınıfını body'ye ekle - DİKEY yazdırma için
+    if (printOrientation === 'portrait') {
+        document.body.classList.add('print-portrait');
+        console.log('Dikey yazdırma sınıfı eklendi');
+    } else {
+        document.body.classList.remove('print-portrait');
+        console.log('Yatay yazdırma (varsayılan)');
+    }
+    
     // Sütun sayısına göre grid sınıfı ekle
     const studentDesks = printSection.querySelector('.student-desks');
     if (studentDesks) {
@@ -423,10 +440,14 @@ function executePrint(printTitle) {
         if (printColumns === 'auto') {
             // Otomatik: sıra sayısına göre
             studentDesks.classList.add(`desk-count-${currentSeatingPlan.deskCount}`);
+            console.log('Otomatik sütun düzeni:', `desk-count-${currentSeatingPlan.deskCount}`);
         } else {
             // Manuel seçim
             studentDesks.classList.add(`print-columns-${printColumns}`);
+            console.log('Manuel sütun düzeni:', `print-columns-${printColumns}`);
         }
+        
+        console.log('Final sütun sınıfları:', studentDesks.className);
     }
     
     // Başlığı güncelle - Kullanıcının girdiği başlığı kullan
@@ -441,11 +462,15 @@ function executePrint(printTitle) {
         
         // Yazdırma işlemini başlat
         setTimeout(() => {
+            console.log('Yazdırma başlatılıyor...');
             window.print();
             
             // Yazdırma işlemi tamamlandıktan sonra temizle
             setTimeout(() => {
                 printSection.remove();
+                // Body'den print sınıfını kaldır
+                document.body.classList.remove('print-portrait');
+                console.log('Yazdırma temizlendi');
             }, 1000);
         }, 300);
     }, 100);
@@ -505,3 +530,16 @@ function generatePrintableSeatingPlan() {
     
     return html;
 } 
+
+// Sütun sayısı değiştirildiğinde önizlemeyi güncelle
+document.addEventListener('DOMContentLoaded', function() {
+    const printColumnsSelect = document.getElementById('printColumns');
+    if (printColumnsSelect) {
+        printColumnsSelect.addEventListener('change', function() {
+            if (currentSeatingPlan) {
+                renderSeatingPlan();
+            }
+        });
+    }
+});
+
