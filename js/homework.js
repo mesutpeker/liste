@@ -180,14 +180,22 @@ function getWeeksInRange(startDate, endDate) {
         const weekEnd = new Date(currentDate);
         weekEnd.setDate(weekEnd.getDate() + 6); // 7 günlük hafta
 
+        // Haftaiçi günleri için başlangıç ve bitiş tarihlerini ayarla
+        const weekdayStart = getWeekdayStart(weekStart);
+        const weekdayEnd = getWeekdayEnd(weekEnd);
+
         weeks.push({
             start: new Date(weekStart),
-            end: new Date(weekEnd > endDate ? endDate : weekEnd)
+            end: new Date(weekEnd > endDate ? endDate : weekEnd),
+            weekdayStart: new Date(weekdayStart),
+            weekdayEnd: new Date(weekdayEnd > endDate ? endDate : weekdayEnd)
         });
 
         console.log(`Hafta ${weekCounter + 1} eklendi:`, {
             start: formatDate(weekStart),
-            end: formatDate(weekEnd > endDate ? endDate : weekEnd)
+            end: formatDate(weekEnd > endDate ? endDate : weekEnd),
+            weekdayStart: formatDate(weekdayStart),
+            weekdayEnd: formatDate(weekdayEnd > endDate ? endDate : weekdayEnd)
         });
 
         // Sonraki haftaya geç
@@ -197,6 +205,36 @@ function getWeeksInRange(startDate, endDate) {
 
     console.log(`Toplam ${weeks.length} hafta bulundu`);
     return weeks;
+}
+
+// Haftanın ilk haftaiçi gününü bulma (Pazartesi)
+function getWeekdayStart(date) {
+    const dayOfWeek = date.getDay(); // 0=Pazar, 1=Pazartesi, ..., 6=Cumartesi
+    const weekdayStart = new Date(date);
+
+    if (dayOfWeek === 0) { // Pazar ise
+        weekdayStart.setDate(date.getDate() + 1); // Pazartesi'ye geç
+    } else if (dayOfWeek === 6) { // Cumartesi ise
+        weekdayStart.setDate(date.getDate() + 2); // Pazartesi'ye geç
+    }
+    // Pazartesi-Cuma arası ise değiştirme
+
+    return weekdayStart;
+}
+
+// Haftanın son haftaiçi gününü bulma (Cuma)
+function getWeekdayEnd(date) {
+    const dayOfWeek = date.getDay(); // 0=Pazar, 1=Pazartesi, ..., 6=Cumartesi
+    const weekdayEnd = new Date(date);
+
+    if (dayOfWeek === 0) { // Pazar ise
+        weekdayEnd.setDate(date.getDate() - 2); // Cuma'ya geç
+    } else if (dayOfWeek === 6) { // Cumartesi ise
+        weekdayEnd.setDate(date.getDate() - 1); // Cuma'ya geç
+    }
+    // Pazartesi-Cuma arası ise değiştirme
+
+    return weekdayEnd;
 }
 
 // Tarih aralığındaki günleri hesaplama (seçilen günler için)
@@ -332,10 +370,10 @@ function createScheduleTable(students, periods, scheduleType, weekStartNumber = 
         
         // Dikey başlık için döndürülmüş metin kullan
         if (scheduleType === 'weekly') {
-            // Hafta başlığı için üç satırlı dikey metin
+            // Hafta başlığı için üç satırlı dikey metin - haftaiçi günleri göster
             const weekNumber = `HAFTA ${weekStartNumber + index}`;
-            const startDate = formatDate(period.start);
-            const endDate = formatDate(period.end);
+            const startDate = formatDate(period.weekdayStart || period.start);
+            const endDate = formatDate(period.weekdayEnd || period.end);
             th.innerHTML = `<div class="rotated-header">
                 <div class="header-line">${weekNumber}</div>
                 <div class="header-line">${startDate}</div>
