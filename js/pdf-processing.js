@@ -2,20 +2,20 @@
 async function extractClassInfo(pdf) {
     const classes = {};
     const numPages = pdf.numPages;
-    
+
     try {
         for (let pageNum = 1; pageNum <= numPages; pageNum++) {
             debugLog(`Sayfa ${pageNum}/${numPages} işleniyor...`);
             const page = await pdf.getPage(pageNum);
             const textContent = await page.getTextContent();
             debugLog(`Sayfa ${pageNum} - metin öğe sayısı: ${textContent.items.length}`);
-            
+
             // 1. Tüm metin içeriğini birleştirme
             let fullText = '';
             let prevItem = null;
             let lineTexts = [];
             let currentLine = [];
-            
+
             // İlk adımda satırları oluştur
             for (const item of textContent.items) {
                 if (prevItem && Math.abs(prevItem.transform[5] - item.transform[5]) < 2) {
@@ -30,26 +30,26 @@ async function extractClassInfo(pdf) {
                 }
                 prevItem = item;
             }
-            
+
             // Son satırı ekle
             if (currentLine.length > 0) {
                 lineTexts.push(currentLine);
             }
-            
+
             // Her satırı işle ve metne dönüştür
             let lines = [];
             for (const line of lineTexts) {
                 // Satırdaki öğeleri x pozisyonuna göre sırala
                 line.sort((a, b) => a.transform[4] - b.transform[4]);
-                
+
                 let lineText = '';
                 let prevLineItem = null;
-                
+
                 for (const item of line) {
                     if (prevLineItem) {
                         // Öğeler arasındaki mesafeyi kontrol et
                         const gap = item.transform[4] - (prevLineItem.transform[4] + prevLineItem.width);
-                        
+
                         // Yakın karakterleri birleştir (küçük aralıkları yok say)
                         if (gap < 2) {
                             lineText += item.str;
@@ -65,152 +65,180 @@ async function extractClassInfo(pdf) {
                     }
                     prevLineItem = item;
                 }
-                
+
                 lines.push(lineText);
                 fullText += lineText + '\n';
             }
-            
+
             // Geliştirme modunda metin içeriğini gösterme
             if (debugMode) {
                 debugLog(`Sayfa ${pageNum} metin içeriği (ilk 500 karakter):`, fullText.substring(0, 500) + '...');
             }
-            
+
             // 2. Sınıf adını bulma
             const classNamePattern = /(\d+\.\s*Sınıf\s*\/\s*[A-Z]\s*Şubesi.*?)(?:\n|$)/i;
             const classMatch = fullText.match(classNamePattern);
             let currentClass = null;
-            
+
             if (classMatch) {
                 currentClass = classMatch[1].trim();
                 debugLog(`Sınıf bulundu: ${currentClass}`);
-                classes[currentClass] = [];
+                if (!classes[currentClass]) {
+                    classes[currentClass] = [];
+                }
             } else {
                 debugLog(`Sayfa ${pageNum}'de sınıf bilgisi bulunamadı`);
             }
-            
+
             // 3. Öğrenci bilgilerini bulma ve sınıflandırma
             // Öğrenci bilgilerini hem tam metin hem de satır bazında ara
             if (currentClass) {
                 // A) Satır bazlı arama (öncelikli)
                 let studentsFound = false;
-                
+
                 for (const line of lines) {
                     // Tab karakterleri ile ayrılmış alanları içeren satırlar muhtemelen öğrenci satırlarıdır
                     if (line.includes('\t')) {
                         const columns = line.split('\t').map(col => col.trim());
-                        
-                        // En az 3 sütun var mı kontrol et (numara, isim, soyisim için)
-                        if (columns.length >= 3) {
-                            // İlk sütun numara mı kontrol et
-                            const numberMatch = columns[0].match(/^\s*(\d+)\s*$/);
+
+                        // Cinsiyet sütununu bul
+                        let genderIndex = -1;
+                        let mergedSurname = null;
+
+                        for (let i = 0; i < columns.length; i++) {
+                            const col = columns[i];
+                            // Normal durum: "Erkek" veya "Kız"
+                            if (/^(Erkek|Kız|erkek|kız)$/i.test(col)) {
+                                genderIndex = i;
+                                break;
+                            }
+                            // Birleşik durum: "ErkekSOYAD" veya "KızSOYAD"
+                            const mergedMatch = col.match(/^(Erkek|Kız|erkek|kız)\s*(.+)$/i);
+                            if (mergedMatch) {
+                                genderIndex = i;
+                                mergedSurname = mergedMatch[2]; // "SOYAD" kısmını al
+                                break;
+                            }
+                        }
+
+                        if (genderIndex > 0) {
+                            // Cinsiyetten önceki tüm sütunları birleştir
+                            const preGenderText = columns.slice(0, genderIndex).join(' ');
+
+                            // Öğrenci numarası ve isim kısmını ayıkla
+                            // Genellikle format: "S.No ÖğrenciNo Ad Soyad" veya "S.No ÖğrenciNo Ad"
+                            // En sondaki sayı dizisini öğrenci numarası olarak al
+                            const numberMatch = preGenderText.match(/(\d+)\s+([^\d]+)$/);
+
                             if (numberMatch) {
                                 const studentNo = numberMatch[1];
-                                
-                                // Cinsiyet bilgisini bul (genellikle ayrı bir sütunda)
-                                let genderIndex = -1;
-                                for (let i = 1; i < columns.length; i++) {
-                                    if (/^(Erkek|Kız|erkek|kız)$/i.test(columns[i])) {
-                                        genderIndex = i;
-                                        break;
-                                    }
-                                }
-                                
-                                if (genderIndex > 0) {
-                                    // Ad ve soyad için uygun indeksleri belirle
-                                    let firstName = columns[1].replace(/\s+/g, ' ').trim();
-                                    let lastName = columns[genderIndex + 1] ? columns[genderIndex + 1].replace(/\s+/g, ' ').trim() : '';
-                                    
-                                    // Soyadı yoksa, ad ve soyadı aynı sütunda olabilir
-                                    if (!lastName && firstName.includes(' ')) {
-                                        const nameParts = firstName.split(' ');
+                                let namePart = numberMatch[2].trim();
+
+                                let firstName = '';
+                                let lastName = '';
+
+                                if (mergedSurname) {
+                                    // Soyad cinsiyet sütununda bitişik
+                                    firstName = namePart;
+                                    lastName = mergedSurname;
+                                } else {
+                                    // Soyad isim kısmının son kelimesi olabilir
+                                    // VEYA soyad cinsiyetten sonraki sütunda olabilir
+
+                                    // Önce ismin son kelimesini soyad olarak almayı dene
+                                    const nameParts = namePart.split(/\s+/);
+                                    if (nameParts.length > 1) {
                                         lastName = nameParts.pop();
                                         firstName = nameParts.join(' ');
+                                    } else {
+                                        firstName = namePart;
                                     }
-                                    
-                                    if (firstName && lastName) {
-                                        // Harfleri düzeltme
-                                        firstName = mergeLetters(firstName);
-                                        lastName = mergeLetters(lastName);
-                                        
-                                        classes[currentClass].push({
-                                            student_no: studentNo,
-                                            first_name: firstName, 
-                                            last_name: lastName
-                                        });
-                                        
-                                        studentsFound = true;
-                                        
-                                        if (debugMode && classes[currentClass].length <= 3) {
-                                            debugLog(`Öğrenci bulundu (satır): ${studentNo} ${firstName} ${lastName}`);
-                                        }
+                                }
+
+                                if (firstName && lastName) {
+                                    // Harfleri düzeltme
+                                    firstName = mergeLetters(firstName);
+                                    lastName = mergeLetters(lastName);
+
+                                    classes[currentClass].push({
+                                        student_no: studentNo,
+                                        first_name: firstName,
+                                        last_name: lastName
+                                    });
+
+                                    studentsFound = true;
+
+                                    if (debugMode && classes[currentClass].length <= 3) {
+                                        debugLog(`Öğrenci bulundu (satır): ${studentNo} ${firstName} ${lastName}`);
                                     }
                                 }
                             }
                         }
                     }
                 }
-                
+
                 // Eğer satır bazlı arama öğrenci bulamadıysa, regex ile dene
                 if (!studentsFound) {
                     debugLog(`Satır bazlı arama öğrenci bulamadı, regex ile deneniyor...`);
-                    
+
                     // B) Regex ile arama (yedek yöntem)
-                    const studentPattern = /\b(\d+)\s+([A-ZĞÜŞİÖÇÂÎÛa-zğüşıöçâîû\s]+?)\s+(Erkek|Kız|erkek|kız)\s+([A-ZĞÜŞİÖÇÂÎÛa-zğüşıöçâîû\s]+?)\s*(?:\n|$)/g;
-                    
+                    // Güncellendi: Cinsiyet ve soyad arasındaki boşluk zorunluluğu kaldırıldı (\s* yapıldı)
+                    const studentPattern = /\b(\d+)\s+([A-ZĞÜŞİÖÇÂÎÛa-zğüşıöçâîû\s]+?)\s+(Erkek|Kız|erkek|kız)\s*([A-ZĞÜŞİÖÇÂÎÛa-zğüşıöçâîû\s]+?)\s*(?:\n|$)/g;
+
                     let match;
                     while ((match = studentPattern.exec(fullText)) !== null) {
                         let firstName = match[2].trim().replace(/\s+/g, ' ');
                         let lastName = match[4].trim().replace(/\s+/g, ' ');
-                        
+
                         // Harfleri düzeltme
                         firstName = mergeLetters(firstName);
                         lastName = mergeLetters(lastName);
-                        
+
                         classes[currentClass].push({
                             student_no: match[1].trim(),
                             first_name: firstName,
                             last_name: lastName
                         });
-                        
+
                         if (debugMode && classes[currentClass].length <= 3) {
                             debugLog(`Öğrenci bulundu (regex): ${match[1].trim()} ${firstName} ${lastName}`);
                         }
                     }
                 }
-                
+
                 // C) Son çare olarak, daha esnek bir desen dene
                 if (classes[currentClass].length === 0) {
                     debugLog(`Standart desenlerle öğrenci bulunamadı, daha esnek desen deneniyor...`);
-                    
+
                     for (const line of lines) {
                         // Başında sayı olan her satırı kontrol et
                         const loosePattern = /^\s*(\d+)\s+(.*)/;
                         const match = line.match(loosePattern);
-                        
+
                         if (match) {
                             const studentNo = match[1].trim();
                             const restOfLine = match[2].trim();
-                            
+
                             // Satırın geri kalanını boşluklara göre parçala
                             const parts = restOfLine.split(/\s+/);
-                            
+
                             if (parts.length >= 2) {
                                 // Son kelime soyad olarak kabul et
                                 const lastName = parts.pop();
                                 // Geri kalan kısım ad olarak kabul et
                                 const firstName = parts.join(' ');
-                                
+
                                 if (firstName && lastName) {
                                     // Harfleri düzeltme
                                     let correctedFirstName = mergeLetters(firstName);
                                     let correctedLastName = mergeLetters(lastName);
-                                    
+
                                     classes[currentClass].push({
                                         student_no: studentNo,
                                         first_name: correctedFirstName,
                                         last_name: correctedLastName
                                     });
-                                    
+
                                     if (debugMode && classes[currentClass].length <= 3) {
                                         debugLog(`Öğrenci bulundu (esnek desen): ${studentNo} ${correctedFirstName} ${correctedLastName}`);
                                     }
@@ -219,11 +247,11 @@ async function extractClassInfo(pdf) {
                         }
                     }
                 }
-                
+
                 debugLog(`${currentClass} sınıfında ${classes[currentClass].length} öğrenci bulundu`);
             }
         }
-        
+
         return classes;
     } catch (err) {
         debugLog(`PDF işleme hatası: ${err.message}`);
@@ -235,7 +263,7 @@ async function extractClassInfo(pdf) {
 function displayClassesAndStudents(classes) {
     const resultsContainer = document.getElementById('results-container');
     resultsContainer.innerHTML = '';
-    
+
     // Veri önişleme - Öğrenci numarası ve ad kontrolü
     Object.keys(classes).forEach(className => {
         classes[className].forEach(student => {
@@ -252,16 +280,16 @@ function displayClassesAndStudents(classes) {
             }
         });
     });
-    
+
     Object.entries(classes).forEach(([className, students]) => {
         if (students.length === 0) return;
-        
+
         debugLog(`'${className}' sınıfı görüntüleniyor, ${students.length} öğrenci var`);
-        
+
         // Her sınıf için bir kart oluştur
         const classCard = document.createElement('div');
         classCard.className = 'card';
-        
+
         // Kart başlığı - sınıf adı ve kopyalama butonları
         const classTitle = document.createElement('div');
         classTitle.className = 'class-title';
@@ -294,7 +322,7 @@ function displayClassesAndStudents(classes) {
                 </button>
             </div>
         `;
-        
+
         // Öğrenci tablosu
         const tableDiv = document.createElement('div');
         tableDiv.className = 'table-responsive';
@@ -310,21 +338,21 @@ function displayClassesAndStudents(classes) {
                 <tbody id="student-list-${className.replace(/[^a-z0-9]/gi, '')}"></tbody>
             </table>
         `;
-        
+
         classCard.appendChild(classTitle);
         classCard.appendChild(tableDiv);
         resultsContainer.appendChild(classCard);
-        
+
         // Öğrenci listesini doldur
         const studentList = document.getElementById(`student-list-${className.replace(/[^a-z0-9]/gi, '')}`);
-        
+
         students.forEach((student, index) => {
             const row = document.createElement('tr');
             // Alternatif satır renklendirme
             if (index % 2 === 0) {
                 row.classList.add('even-row');
             }
-            
+
             row.innerHTML = `
                 <td>${student.student_no}</td>
                 <td>${student.first_name}</td>
@@ -333,41 +361,41 @@ function displayClassesAndStudents(classes) {
                     <i class="bi bi-clipboard"></i>
                 </button>
             `;
-            
+
             studentList.appendChild(row);
         });
     });
-    
+
     // Sınıf kopyalama butonları için olay dinleyicileri
     document.querySelectorAll('.copy-class-btn').forEach(button => {
         button.addEventListener('click', copyClassInfo);
     });
-    
+
     // Numaraları kopyalama butonları için olay dinleyicileri
     document.querySelectorAll('.copy-numbers-btn').forEach(button => {
         button.addEventListener('click', copyNumbersInfo);
     });
-    
+
     // Adları kopyalama butonları için olay dinleyicileri
     document.querySelectorAll('.copy-names-btn').forEach(button => {
         button.addEventListener('click', copyNamesInfo);
     });
-    
+
     // Soyadları kopyalama butonları için olay dinleyicileri
     document.querySelectorAll('.copy-surnames-btn').forEach(button => {
         button.addEventListener('click', copySurnamesInfo);
     });
-    
+
     // Ad-Soyadları kopyalama butonları için olay dinleyicileri
     document.querySelectorAll('.copy-fullnames-btn').forEach(button => {
         button.addEventListener('click', copyFullNamesInfo);
     });
-    
+
     // Satır kopyalama butonları için olay dinleyicileri
     document.querySelectorAll('.row-copy').forEach(button => {
         button.addEventListener('click', copyRowInfo);
     });
-    
+
     debugLog('Tüm sınıflar ve öğrenciler başarıyla görüntülendi');
 }
 
@@ -378,24 +406,24 @@ function copyStudentInfo(e) {
     const index = button.getAttribute('data-index');
     const className = button.getAttribute('data-class');
     const student = classesByName[className][index];
-    
+
     let textToCopy = '';
-    
+
     if (field === 'all') {
         textToCopy = `${student.student_no} ${student.first_name} ${student.last_name}`;
     } else {
         textToCopy = student[field];
     }
-    
+
     debugLog(`Kopyalanan ${field}: ${textToCopy}`);
-    
+
     navigator.clipboard.writeText(textToCopy).then(() => {
         // Kopyalama başarılı olduğunda butonun stilini değiştirme
         const originalText = button.innerHTML;
         button.innerHTML = '<i class="bi bi-check"></i> Kopyalandı';
         button.classList.remove('btn-outline-secondary');
         button.classList.add('btn-success');
-        
+
         setTimeout(() => {
             button.innerHTML = originalText;
             button.classList.remove('btn-success');
@@ -412,15 +440,15 @@ function copyNumbersInfo(e) {
     const button = e.currentTarget;
     const className = button.getAttribute('data-class');
     const students = classesByName[className];
-    
+
     let allNumbers = '';
-    
+
     students.forEach(student => {
         allNumbers += student.student_no + '\n';
     });
-    
+
     debugLog(`'${className}' sınıfının tüm öğrencilerinin numaraları kopyalandı`);
-    
+
     navigator.clipboard.writeText(allNumbers.trim()).then(() => {
         showCopySuccess(button, 'Tüm Numaralar');
     }).catch(err => {
@@ -434,15 +462,15 @@ function copyNamesInfo(e) {
     const button = e.currentTarget;
     const className = button.getAttribute('data-class');
     const students = classesByName[className];
-    
+
     let allNames = '';
-    
+
     students.forEach(student => {
         allNames += student.first_name + '\n';
     });
-    
+
     debugLog(`'${className}' sınıfının tüm öğrencilerinin adları kopyalandı`);
-    
+
     navigator.clipboard.writeText(allNames.trim()).then(() => {
         showCopySuccess(button, 'Tüm Adlar');
     }).catch(err => {
@@ -456,15 +484,15 @@ function copySurnamesInfo(e) {
     const button = e.currentTarget;
     const className = button.getAttribute('data-class');
     const students = classesByName[className];
-    
+
     let allSurnames = '';
-    
+
     students.forEach(student => {
         allSurnames += student.last_name + '\n';
     });
-    
+
     debugLog(`'${className}' sınıfının tüm öğrencilerinin soyadları kopyalandı`);
-    
+
     navigator.clipboard.writeText(allSurnames.trim()).then(() => {
         showCopySuccess(button, 'Tüm Soyadlar');
     }).catch(err => {
@@ -478,15 +506,15 @@ function copyFullNamesInfo(e) {
     const button = e.currentTarget;
     const className = button.getAttribute('data-class');
     const students = classesByName[className];
-    
+
     let allFullNames = '';
-    
+
     students.forEach(student => {
         allFullNames += `${student.first_name} ${student.last_name}\n`;
     });
-    
+
     debugLog(`'${className}' sınıfının tüm öğrencilerinin ad-soyadları kopyalandı`);
-    
+
     navigator.clipboard.writeText(allFullNames.trim()).then(() => {
         showCopySuccess(button, 'Tüm Ad-Soyadlar');
     }).catch(err => {
@@ -500,15 +528,15 @@ function copyClassInfo(e) {
     const button = e.currentTarget;
     const className = button.getAttribute('data-class');
     const students = classesByName[className];
-    
+
     let allText = '';
-    
+
     students.forEach(student => {
         allText += `${student.student_no} ${student.first_name} ${student.last_name}\n`;
     });
-    
+
     debugLog(`'${className}' sınıfının tüm öğrencileri kopyalandı`);
-    
+
     navigator.clipboard.writeText(allText.trim()).then(() => {
         showCopySuccess(button, 'Tümünü Kopyala');
     }).catch(err => {
@@ -521,10 +549,10 @@ function copyClassInfo(e) {
 function showCopySuccess(button, originalText) {
     const originalInnerHTML = button.innerHTML;
     const originalClasses = [...button.classList];
-    
+
     // Başarılı metin göster
     button.innerHTML = '<i class="bi bi-check"></i> Kopyalandı';
-    
+
     // Butonun orijinal renk sınıfını belirle
     let buttonColorClass = '';
     if (originalClasses.includes('btn-numbers')) buttonColorClass = 'btn-numbers';
@@ -532,11 +560,11 @@ function showCopySuccess(button, originalText) {
     else if (originalClasses.includes('btn-surnames')) buttonColorClass = 'btn-surnames';
     else if (originalClasses.includes('btn-fullnames')) buttonColorClass = 'btn-fullnames';
     else if (originalClasses.includes('btn-all')) buttonColorClass = 'btn-all';
-    
+
     // Orijinal renk sınıfını kaldır ve başarı rengini ekle
     if (buttonColorClass) button.classList.remove(buttonColorClass);
     button.classList.add('btn-success');
-    
+
     setTimeout(() => {
         // Orijinal içeriği ve renk sınıfını geri yükle
         button.innerHTML = originalInnerHTML;
@@ -549,16 +577,16 @@ function showCopySuccess(button, originalText) {
 function copyRowInfo(e) {
     const button = e.currentTarget;
     const studentInfo = button.getAttribute('data-student');
-    
+
     debugLog(`Kopyalanan öğrenci: ${studentInfo}`);
-    
+
     navigator.clipboard.writeText(studentInfo).then(() => {
         // Kopyalama başarılı olduğunda butonun stilini değiştirme
         const originalHTML = button.innerHTML;
         button.innerHTML = '<i class="bi bi-check"></i>';
         button.style.backgroundColor = 'rgba(40, 167, 69, 0.2)';
         button.style.color = '#28a745';
-        
+
         setTimeout(() => {
             button.innerHTML = originalHTML;
             button.style.backgroundColor = '';
