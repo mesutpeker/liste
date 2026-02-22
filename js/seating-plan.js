@@ -4,39 +4,39 @@ let currentSeatingPlan = null;
 let selectedStudent = null;
 
 // Event delegation kullanarak butonlara tıklama olaylarını dinle
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     // Oluştur butonuna tıklanınca
     if (e.target && e.target.id === 'generateSeatingPlanBtn') {
         console.log('Oluştur butonuna tıklandı!');
-        
+
         // Global değişkenleri kontrol et
         console.log('currentScheduleClass:', typeof currentScheduleClass !== 'undefined' ? currentScheduleClass : 'tanımsız');
         console.log('classesByName:', typeof classesByName !== 'undefined' ? Object.keys(classesByName) : 'tanımsız');
-        
+
         const deskCount = parseInt(document.getElementById('deskCount').value);
         const planTitle = document.getElementById('seatingPlanTitle').value || 'Sınıf Oturma Planı';
-        
+
         console.log('Sıra sayısı:', deskCount);
         console.log('Plan başlığı:', planTitle);
-        
+
         if (!deskCount || deskCount < 1 || deskCount > 30) {
             alert('Lütfen 1-30 arasında geçerli bir sıra sayısı girin.');
             return;
         }
-        
+
         if (typeof currentScheduleClass === 'undefined' || !currentScheduleClass) {
             alert('Sınıf seçilmedi. Lütfen önce bir sınıf seçin.');
             return;
         }
-        
+
         if (typeof classesByName === 'undefined' || !classesByName[currentScheduleClass]) {
             alert('Öğrenci listesi bulunamadı. Lütfen önce PDF dosyasını yükleyin.');
             return;
         }
-        
+
         generateSeatingPlan(deskCount, planTitle);
     }
-    
+
     // Karıştır butonuna tıklanınca
     if (e.target && e.target.id === 'shuffleSeatingPlanBtn') {
         console.log('Karıştır butonuna tıklandı!');
@@ -44,7 +44,7 @@ document.addEventListener('click', function(e) {
             shuffleSeatingPlan();
         }
     }
-    
+
     // Yazdır butonuna tıklanınca
     if (e.target && e.target.id === 'printSeatingPlanBtn') {
         console.log('Yazdır butonuna tıklandı!');
@@ -54,17 +54,17 @@ document.addEventListener('click', function(e) {
     }
 });
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log('Seating plan script yüklendi');
-    
+
     // Plan başlığı değiştirildiğinde önizlemeyi güncelle
     const planTitleInput = document.getElementById('seatingPlanTitle');
     if (planTitleInput) {
-        planTitleInput.addEventListener('input', function() {
+        planTitleInput.addEventListener('input', function () {
             if (currentSeatingPlan) {
                 // Başlığı currentSeatingPlan'da da güncelle
                 currentSeatingPlan.title = this.value.trim() || 'Sınıf Oturma Planı';
-                
+
                 // Önizlemeyi yeniden render et
                 updateSeatingPlanTitle();
             }
@@ -88,10 +88,10 @@ function generateSeatingPlan(deskCount, planTitle) {
         alert('Öğrenci listesi bulunamadı.');
         return;
     }
-    
+
     // Öğrencileri karıştır
     const shuffledStudents = [...students].sort(() => Math.random() - 0.5);
-    
+
     // Oturma planı oluştur
     currentSeatingPlan = {
         title: planTitle,
@@ -99,7 +99,7 @@ function generateSeatingPlan(deskCount, planTitle) {
         students: shuffledStudents,
         assignments: {}
     };
-    
+
     // Tüm sıralar için boş assignment'lar oluştur
     for (let desk = 1; desk <= deskCount; desk++) {
         currentSeatingPlan.assignments[desk] = {
@@ -107,7 +107,7 @@ function generateSeatingPlan(deskCount, planTitle) {
             right: null
         };
     }
-    
+
     // Öğrencileri sıralara yerleştir (her sıraya 2 öğrenci)
     let studentIndex = 0;
     for (let desk = 1; desk <= deskCount && studentIndex < shuffledStudents.length; desk++) {
@@ -118,10 +118,10 @@ function generateSeatingPlan(deskCount, planTitle) {
             currentSeatingPlan.assignments[desk].right = shuffledStudents[studentIndex++];
         }
     }
-    
+
     console.log('Oturma planı oluşturuldu:', currentSeatingPlan);
     renderSeatingPlan();
-    
+
     // Butonları aktif et
     document.getElementById('shuffleSeatingPlanBtn').disabled = false;
     document.getElementById('printSeatingPlanBtn').disabled = false;
@@ -130,15 +130,15 @@ function generateSeatingPlan(deskCount, planTitle) {
 // Oturma planını görsel olarak render etme
 function renderSeatingPlan() {
     if (!currentSeatingPlan) return;
-    
+
     const previewDiv = document.getElementById('seatingPlanPreview');
-    
+
     // Kullanıcının girdiği başlığı al, yoksa currentSeatingPlan.title'ı kullan
     const displayTitle = document.getElementById('seatingPlanTitle').value.trim() || currentSeatingPlan.title || 'Sınıf Oturma Planı';
-    
+
     // Seçilen sütun sayısını al
     const printColumns = document.getElementById('printColumns').value;
-    
+
     let html = `
         <div class="seating-plan">
             <h4 class="text-center mb-4">${displayTitle}</h4>
@@ -150,46 +150,46 @@ function renderSeatingPlan() {
                 </div>
                 <div class="student-desks ${printColumns !== 'auto' ? 'columns-' + printColumns : ''}">
     `;
-    
+
     // Sıraları oluştur
     for (let desk = 1; desk <= currentSeatingPlan.deskCount; desk++) {
         const assignment = currentSeatingPlan.assignments[desk] || { left: null, right: null };
-        
+
         html += `
             <div class="desk-row" data-desk="${desk}">
                 <div class="desk-number">${desk}</div>
                 <div class="student-seats">
                     <div class="student-seat left ${assignment.left ? 'occupied' : 'empty'}" 
                          data-desk="${desk}" data-position="left">
-                        ${assignment.left ? 
-                            `<div class="student-name" data-student-id="${assignment.left.student_no}">
+                        ${assignment.left ?
+                `<div class="student-name" data-student-id="${assignment.left.student_no}">
                                 ${assignment.left.first_name} ${assignment.left.last_name}
-                            </div>` : 
-                            '<div class="empty-seat">Boş</div>'
-                        }
+                            </div>` :
+                '<div class="empty-seat">Boş</div>'
+            }
                     </div>
                     <div class="student-seat right ${assignment.right ? 'occupied' : 'empty'}" 
                          data-desk="${desk}" data-position="right">
-                        ${assignment.right ? 
-                            `<div class="student-name" data-student-id="${assignment.right.student_no}">
+                        ${assignment.right ?
+                `<div class="student-name" data-student-id="${assignment.right.student_no}">
                                 ${assignment.right.first_name} ${assignment.right.last_name}
-                            </div>` : 
-                            '<div class="empty-seat">Boş</div>'
-                        }
+                            </div>` :
+                '<div class="empty-seat">Boş</div>'
+            }
                     </div>
                 </div>
             </div>
         `;
     }
-    
+
     html += `
                 </div>
             </div>
         </div>
     `;
-    
+
     previewDiv.innerHTML = html;
-    
+
     // Öğrenci yerlerini değiştirme için click event'leri ekle
     addSeatClickEvents();
 }
@@ -197,10 +197,10 @@ function renderSeatingPlan() {
 // Öğrenci koltukları için click event'leri ekle
 function addSeatClickEvents() {
     document.querySelectorAll('.student-seat').forEach(seat => {
-        seat.addEventListener('click', function() {
+        seat.addEventListener('click', function () {
             const desk = parseInt(this.getAttribute('data-desk'));
             const position = this.getAttribute('data-position');
-            
+
             if (selectedStudent) {
                 // Öğrenci seçiliyse, bu koltuğa yerleştir
                 moveStudentToSeat(selectedStudent, desk, position);
@@ -223,12 +223,12 @@ function selectStudent(student, desk, position) {
         originalDesk: desk,
         originalPosition: position
     };
-    
+
     // Seçili öğrenciyi görsel olarak işaretle
     document.querySelectorAll('.student-seat').forEach(seat => {
         seat.classList.remove('selected');
     });
-    
+
     const seatElement = document.querySelector(`[data-desk="${desk}"][data-position="${position}"]`);
     if (seatElement) {
         seatElement.classList.add('selected');
@@ -240,22 +240,22 @@ function moveStudentToSeat(selectedStudentInfo, targetDesk, targetPosition) {
     const sourceDesk = selectedStudentInfo.originalDesk;
     const sourcePosition = selectedStudentInfo.originalPosition;
     const student = selectedStudentInfo.student;
-    
+
     // Hedef koltukta zaten bir öğrenci varsa, yer değiştir
     const targetAssignment = currentSeatingPlan.assignments[targetDesk];
     const targetStudent = targetAssignment ? targetAssignment[targetPosition] : null;
-    
+
     // Öğrencileri yerleştir
     if (!currentSeatingPlan.assignments[targetDesk]) {
         currentSeatingPlan.assignments[targetDesk] = { left: null, right: null };
     }
-    
+
     if (!currentSeatingPlan.assignments[sourceDesk]) {
         currentSeatingPlan.assignments[sourceDesk] = { left: null, right: null };
     }
-    
+
     currentSeatingPlan.assignments[targetDesk][targetPosition] = student;
-    
+
     if (targetStudent) {
         // Yer değiştirme
         currentSeatingPlan.assignments[sourceDesk][sourcePosition] = targetStudent;
@@ -263,7 +263,7 @@ function moveStudentToSeat(selectedStudentInfo, targetDesk, targetPosition) {
         // Sadece taşıma
         currentSeatingPlan.assignments[sourceDesk][sourcePosition] = null;
     }
-    
+
     // Planı yeniden render et
     renderSeatingPlan();
 }
@@ -279,7 +279,7 @@ function clearSelection() {
 // Oturma planını karıştır
 function shuffleSeatingPlan() {
     if (!currentSeatingPlan) return;
-    
+
     // Tüm öğrencileri topla
     const allStudents = [];
     for (let desk = 1; desk <= currentSeatingPlan.deskCount; desk++) {
@@ -287,10 +287,10 @@ function shuffleSeatingPlan() {
         if (assignment && assignment.left) allStudents.push(assignment.left);
         if (assignment && assignment.right) allStudents.push(assignment.right);
     }
-    
+
     // Karıştır
     const shuffledStudents = allStudents.sort(() => Math.random() - 0.5);
-    
+
     // Tüm sıralar için boş assignment'lar oluştur
     currentSeatingPlan.assignments = {};
     for (let desk = 1; desk <= currentSeatingPlan.deskCount; desk++) {
@@ -299,7 +299,7 @@ function shuffleSeatingPlan() {
             right: null
         };
     }
-    
+
     // Öğrencileri yeniden yerleştir
     let studentIndex = 0;
     for (let desk = 1; desk <= currentSeatingPlan.deskCount && studentIndex < shuffledStudents.length; desk++) {
@@ -310,14 +310,14 @@ function shuffleSeatingPlan() {
             currentSeatingPlan.assignments[desk].right = shuffledStudents[studentIndex++];
         }
     }
-    
+
     renderSeatingPlan();
 }
 
 // Oturma planını yazdır
 function printSeatingPlan() {
     if (!currentSeatingPlan) return;
-    
+
     // Kullanıcıdan yazdırma başlığını al
     showPrintTitleModal();
 }
@@ -326,7 +326,7 @@ function printSeatingPlan() {
 function showPrintTitleModal() {
     // Mevcut başlığı al
     const currentTitle = document.getElementById('seatingPlanTitle').value || currentSeatingPlan.title || 'Sınıf Oturma Planı';
-    
+
     // Modal HTML'ini oluştur
     const modalHtml = `
         <div class="modal fade" id="printTitleModal" tabindex="-1" aria-labelledby="printTitleModalLabel" aria-hidden="true">
@@ -353,43 +353,43 @@ function showPrintTitleModal() {
             </div>
         </div>
     `;
-    
+
     // Mevcut modal'ı kaldır (varsa)
     const existingModal = document.getElementById('printTitleModal');
     if (existingModal) {
         existingModal.remove();
     }
-    
+
     // Yeni modal'ı ekle
     document.body.insertAdjacentHTML('beforeend', modalHtml);
-    
+
     // Modal'ı göster
     const modal = new bootstrap.Modal(document.getElementById('printTitleModal'));
     modal.show();
-    
+
     // Confirm butonuna event listener ekle
-    document.getElementById('confirmPrintBtn').addEventListener('click', function() {
+    document.getElementById('confirmPrintBtn').addEventListener('click', function () {
         const printTitle = document.getElementById('printTitle').value.trim() || 'Sınıf Oturma Planı';
         modal.hide();
-        
+
         // Modal'ı DOM'dan kaldır
         setTimeout(() => {
             document.getElementById('printTitleModal').remove();
         }, 500);
-        
+
         // Gerçek yazdırma işlemini başlat
         executePrint(printTitle);
     });
-    
+
     // Input alanına odaklan ve Enter tuşu desteği ekle
     setTimeout(() => {
         const printTitleInput = document.getElementById('printTitle');
         if (printTitleInput) {
             printTitleInput.focus();
             printTitleInput.select();
-            
+
             // Enter tuşuna basıldığında yazdır
-            printTitleInput.addEventListener('keypress', function(e) {
+            printTitleInput.addEventListener('keypress', function (e) {
                 if (e.key === 'Enter') {
                     document.getElementById('confirmPrintBtn').click();
                 }
@@ -403,86 +403,123 @@ function executePrint(printTitle) {
     // Modal'daki önizlemeyi al
     const previewDiv = document.getElementById('seatingPlanPreview');
     if (!previewDiv) return;
-    
-    // Seçilen sütun sayısını ve yazdırma yönünü al
+
+    // Seçilen sütun sayısını al
     const printColumns = document.getElementById('printColumns').value;
-    const printOrientation = document.getElementById('printOrientation').value;
-    
-    console.log('Yazdırma yönü:', printOrientation);
+
     console.log('Sütun sayısı:', printColumns);
     console.log('Masa sayısı:', currentSeatingPlan.deskCount);
-    
+
     // Yazdırma alanı oluştur
     const printSection = document.createElement('div');
     printSection.id = 'seating-plan-print-section';
     printSection.innerHTML = previewDiv.innerHTML;
     printSection.style.display = 'none';
     document.body.appendChild(printSection);
-    
-    // Yazdırma için CSS sınıfı ekle
-    printSection.classList.add('print-active');
-    
-    // Yazdırma yönü sınıfını body'ye ekle - DİKEY yazdırma için
-    if (printOrientation === 'portrait') {
-        document.body.classList.add('print-portrait');
-        console.log('Dikey yazdırma sınıfı eklendi');
-    } else {
-        document.body.classList.remove('print-portrait');
-        console.log('Yatay yazdırma (varsayılan)');
-    }
-    
+
+    // Body'ye print-seating sınıfı ekle
+    document.body.classList.add('print-seating');
+
+    // @page kuralını dinamik olarak portrait'a çevir
+    // (CSS @page class ile koşullu çalışmaz, bu yüzden JS ile inject ediyoruz)
+    const pageStyle = document.createElement('style');
+    pageStyle.id = 'seating-print-page-style';
+    pageStyle.textContent = '@page { size: A4 portrait !important; margin: 0.4cm !important; }';
+    document.head.appendChild(pageStyle);
+
     // Sütun sayısına göre grid sınıfı ekle
     const studentDesks = printSection.querySelector('.student-desks');
     if (studentDesks) {
         // Önceki sınıfları temizle
         studentDesks.className = studentDesks.className.replace(/desk-count-\d+|print-columns-\d+|print-columns-auto/g, '');
-        
+
         if (printColumns === 'auto') {
-            // Otomatik: sıra sayısına göre
             studentDesks.classList.add(`desk-count-${currentSeatingPlan.deskCount}`);
             console.log('Otomatik sütun düzeni:', `desk-count-${currentSeatingPlan.deskCount}`);
         } else {
-            // Manuel seçim
             studentDesks.classList.add(`print-columns-${printColumns}`);
             console.log('Manuel sütun düzeni:', `print-columns-${printColumns}`);
         }
-        
-        console.log('Final sütun sınıfları:', studentDesks.className);
+
+        const deskCount = currentSeatingPlan.deskCount;
+        const columnCount = printColumns === 'auto'
+            ? resolveAutoPrintColumns(deskCount)
+            : Math.max(2, Math.min(5, parseInt(printColumns, 10) || 3));
+        const rowCount = Math.max(1, Math.ceil(deskCount / columnCount));
+        const seatGap = resolveSeatGapCm(rowCount);
+        const seatFont = resolveSeatFontPx(columnCount, rowCount);
+
+        studentDesks.style.setProperty('--seat-cols', String(columnCount), 'important');
+        studentDesks.style.setProperty('--seat-rows', String(rowCount), 'important');
+        studentDesks.style.setProperty('--seat-gap', `${seatGap.toFixed(2)}cm`, 'important');
+        studentDesks.style.setProperty('--seat-font', `${seatFont.toFixed(1)}px`, 'important');
+
+        console.log('Yazdırma grid metrikleri:', { deskCount, columnCount, rowCount, seatGap, seatFont });
     }
-    
-    // Başlığı güncelle - Kullanıcının girdiği başlığı kullan
+
+    // Başlığı güncelle
     const titleElement = printSection.querySelector('h4');
     if (titleElement) {
         titleElement.textContent = printTitle;
     }
-    
-    // CSS kontrolü için kısa bir gecikme
+
+    // Kısa bir gecikme sonrası yazdır
     setTimeout(() => {
         printSection.style.display = 'block';
-        
+
         // Yazdırma işlemini başlat
         setTimeout(() => {
             console.log('Yazdırma başlatılıyor...');
             window.print();
-            
+
             // Yazdırma işlemi tamamlandıktan sonra temizle
             setTimeout(() => {
                 printSection.remove();
-                // Body'den print sınıfını kaldır
-                document.body.classList.remove('print-portrait');
+                document.body.classList.remove('print-seating');
+                // İnjected @page stilini de kaldır
+                const injectedStyle = document.getElementById('seating-print-page-style');
+                if (injectedStyle) injectedStyle.remove();
                 console.log('Yazdırma temizlendi');
             }, 1000);
         }, 300);
     }, 100);
 }
 
+function resolveAutoPrintColumns(deskCount) {
+    if (deskCount <= 6) return 2;
+    if (deskCount <= 12) return 3;
+    if (deskCount <= 20) return 4;
+    return 5;
+}
+
+function resolveSeatGapCm(rowCount) {
+    if (rowCount <= 2) return 0.36;
+    if (rowCount === 3) return 0.30;
+    if (rowCount === 4) return 0.24;
+    if (rowCount === 5) return 0.19;
+    if (rowCount === 6) return 0.15;
+    return 0.11;
+}
+
+function resolveSeatFontPx(columnCount, rowCount) {
+    let base;
+    if (columnCount === 2) base = 11;
+    else if (columnCount === 3) base = 9.8;
+    else if (columnCount === 4) base = 8.8;
+    else base = 7.8;
+
+    if (rowCount >= 7) return Math.max(7.2, base - 0.8);
+    if (rowCount === 6) return Math.max(7.4, base - 0.5);
+    return base;
+}
+
 // Yazdırılabilir oturma planı HTML'i oluştur
 function generatePrintableSeatingPlan() {
     if (!currentSeatingPlan) return '';
-    
+
     // Sınıf adını başlıktan çıkar
     const className = currentScheduleClass || 'SINIF';
-    
+
     let html = `
         <div class="seating-plan-print">
             <div class="print-header">
@@ -498,7 +535,7 @@ function generatePrintableSeatingPlan() {
             </div>
             <div class="print-classroom-grid" data-desk-count="${currentSeatingPlan.deskCount}">
     `;
-    
+
     // Tüm sıraları sırayla oluştur
     for (let desk = 1; desk <= currentSeatingPlan.deskCount; desk++) {
         const assignment = currentSeatingPlan.assignments[desk];
@@ -507,39 +544,38 @@ function generatePrintableSeatingPlan() {
                 <div class="print-desk-header">${desk}</div>
                 <div class="print-desk-seats">
                     <div class="print-seat">
-                        ${assignment && assignment.left ? 
-                            assignment.left.first_name + ' ' + assignment.left.last_name : 
-                            ''
-                        }
+                        ${assignment && assignment.left ?
+                assignment.left.first_name + ' ' + assignment.left.last_name :
+                ''
+            }
                     </div>
                     <div class="print-seat">
-                        ${assignment && assignment.right ? 
-                            assignment.right.first_name + ' ' + assignment.right.last_name : 
-                            ''
-                        }
+                        ${assignment && assignment.right ?
+                assignment.right.first_name + ' ' + assignment.right.last_name :
+                ''
+            }
                     </div>
                 </div>
             </div>
         `;
     }
-    
+
     html += `
             </div>
         </div>
     `;
-    
+
     return html;
-} 
+}
 
 // Sütun sayısı değiştirildiğinde önizlemeyi güncelle
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const printColumnsSelect = document.getElementById('printColumns');
     if (printColumnsSelect) {
-        printColumnsSelect.addEventListener('change', function() {
+        printColumnsSelect.addEventListener('change', function () {
             if (currentSeatingPlan) {
                 renderSeatingPlan();
             }
         });
     }
 });
-
